@@ -1,6 +1,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "sd_settings.h"
+
 #include <QApplication>
 #include <QWidget>
 #include <QHBoxLayout>
@@ -9,6 +11,9 @@
 #include <QFileSystemModel>
 #include <QMainWindow>
 #include <QKeyEvent>
+
+
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -26,6 +31,7 @@ public:
 
 private slots:
     void on_actionOpen_folder_triggered();
+
     void on_listView_left_doubleClicked(const QModelIndex &index);
 
     void on_input_clicked();
@@ -38,7 +44,7 @@ private slots:
 
     void on_back_left_clicked();
 
-    void on_listView_left_clicked(const QModelIndex &index);
+    //void on_listView_left_clicked(const QModelIndex &index);
 
     void on_move_to_right_clicked();
 
@@ -48,7 +54,6 @@ private slots:
 
     void copyDirectoryRecursively(const QString &sourceDir, const QString &destDir);
 
-    //void on_left_path_textChanged(const QString &arg1);
     void setPathView(int type, QString path);
 
     void on_copy_to_right_clicked();
@@ -60,9 +65,18 @@ private slots:
     void on_delete_right_clicked();
 
     void permanentlyDeleteFiles(const QStringList& filePaths);
+
     void on_permanent_del_left_clicked();
 
     void on_permanent_del_right_clicked();
+
+    void on_sd_actions_left_clicked();
+
+    void on_sd_actions_right_clicked();
+
+public slots:
+    void receiveLeftData(int *settins);
+    void receiveRightData(int *settins);
 
 private:
     Ui::MainWindow *ui;
@@ -70,10 +84,4 @@ private:
     QString visited;
 
 };
-
-//Ищет отсутствующие или неактуальные элементы в резервной директории
-//void contentDifference(QDir &sDir, QDir &dDir, QFileInfoList &diffList);
-//Наполняет список всех вложеных директорий и файлов
-//void recursiveContentList(QDir &dir, QFileInfoList &contentList);
-
 #endif // MAINWINDOW_H

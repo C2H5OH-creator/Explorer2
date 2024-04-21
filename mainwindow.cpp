@@ -28,6 +28,12 @@ MainWindow::MainWindow(QWidget *parent)
 
     //Left
     ui->listView_left->setModel(model);
+
+/*  Код для иногочного вида на потом
+    ui->listView_left->setViewMode(QListView::IconMode);
+    ui->listView_left->setIconSize(QSize(50, 50)); // Укажите желаемый размер значков
+    ui->listView_left->setResizeMode(QListView::Adjust);
+*/
     ui->listView_left->setSelectionMode(QAbstractItemView::ExtendedSelection);
     ui->left_path->setPlaceholderText("");
     ui->left_path->setReadOnly(true);
@@ -107,8 +113,6 @@ void MainWindow::on_back_left_clicked()
     // Check if the parent path is the root directory
     if (parentPath == "") {
         ui->listView_left->setRootIndex(model->index(""));
-        //Обновление пути
-
     }
     else{
         QDir dir = fileInfo.dir();
@@ -332,7 +336,7 @@ void MainWindow::on_copy_to_right_clicked()
         }
     }
 }
-
+/*
 void MainWindow::on_listView_left_clicked(const QModelIndex &index)
 {
     // Check if Ctrl/Cmd is pressed for multiple selection
@@ -352,6 +356,7 @@ void MainWindow::on_listView_left_clicked(const QModelIndex &index)
         }
     }
 }
+*/
 
 //Перемещение файлов слева-направо
 void MainWindow::on_move_to_right_clicked() {
@@ -745,3 +750,186 @@ void MainWindow::on_permanent_del_right_clicked()
     } else if (choice == QMessageBox::No) return;
 }
 
+
+void MainWindow::on_sd_actions_left_clicked()
+{
+    SD_settings sd_settings_right(this);
+    connect(&sd_settings_right, &SD_settings::sendLeftData, this, &MainWindow::receiveLeftData);
+    sd_settings_right.exec();
+}
+
+void MainWindow::receiveLeftData(int *settings)
+{
+    // Получаем модель выбора из listView'ов
+    QItemSelectionModel* selectionRightModel = ui->listView_right->selectionModel();
+    QItemSelectionModel* selectionLeftModel = ui->listView_left->selectionModel();
+
+    /*
+        settings[0] - Copy_type
+        settings[1] - Move_type
+        settings[2] - folder_settings
+        settings[3] - Raw_to_JPEG
+        settings[4] - MTS_to_MP4
+
+    */
+
+    //\DCIM\103MSDCF - путь для фото
+    //\PRIVATE\AVCHD\BDMV\STREAM - путь для видео
+
+    // Создаем объект QDir для исходной директории
+    QDir sourceDir(model->filePath(ui->listView_left->rootIndex())+ "\\DCIM\\103MSDCF");
+
+    // Создаем объект QDir для исходной директории
+    QDir destDir(model->filePath(ui->listView_right->rootIndex()));
+
+    // Получаем список файлов в исходной директории
+    QStringList fileList = sourceDir.entryList(QDir::Files);
+
+    // Проходим по каждому файлу
+    foreach (const QString &fileName, fileList) {
+        // Получаем полный путь к файлу
+        QString filePath = sourceDir.filePath(fileName);
+
+        // Получаем информацию о файле
+        QFileInfo fileInfo(filePath);
+
+        // Получаем формат файла
+        QString format = fileInfo.suffix().toLower();
+        QDir destinationFormatDir(destDir);
+
+        //Если пользователь выбрал создавать папки
+        if (settings[2] == 1){
+            // Создаем папку для данного формата, если она еще не существует
+            if (!destinationFormatDir.exists(format)) {
+                if (!destinationFormatDir.mkdir(format)) {
+                    qDebug() << "Failed to create directory for format:" << format;
+                    continue;
+                }
+            }
+            // Копируем файл в соответствующую папку
+            if(settings[0] == 1){
+                QString destinationFilePath = destinationFormatDir.filePath(format + "/" + fileName);
+                if (!QFile::copy(filePath, destinationFilePath)) {
+                    qDebug() << "Failed to copy file:" << filePath << "to" << destinationFilePath;
+                }
+            // Перемещаем файл в соответствующую папку
+            }else if (settings[1] == 1){
+                QString destinationFilePath = destinationFormatDir.filePath(format + "/" + fileName);
+                if (!QFile::rename(filePath, destinationFilePath)) {
+                    qDebug() << "Failed to move file:" << filePath << "to" << destinationFilePath;
+                }
+            }
+        }
+        if (settings[2] == 0){
+            /// Копируем файл в соответствующую папку
+            if(settings[0] == 1){
+                QString destinationFilePath = destDir.filePath(fileName); // Используем filePath() вместо path()
+                if (!QFile::copy(filePath, destinationFilePath)) {
+                    qDebug() << "Failed to copy file:" << filePath << "to" << destinationFilePath;
+                }
+                // Перемещаем файл в соответствующую папку
+            }else if (settings[1] == 1){
+                QString destinationFilePath = destDir.filePath(fileName); // Используем filePath() вместо path()
+                if (!QFile::rename(filePath, destinationFilePath)) {
+                    qDebug() << "Failed to move file:" << filePath << "to" << destinationFilePath;
+                }
+            }
+        }
+    }
+
+    qDebug() << "Organizing images completed.";
+    delete[] settings;
+}
+
+
+void MainWindow::on_sd_actions_right_clicked()
+{
+    SD_settings sd_settings_right(this);
+    connect(&sd_settings_right, &SD_settings::sendRightData, this, &MainWindow::receiveRightData);
+    sd_settings_right.exec();
+}
+
+void MainWindow::receiveRightData(int *settings)
+{
+    // Получаем модель выбора из listView'ов
+    QItemSelectionModel* selectionRightModel = ui->listView_right->selectionModel();
+    QItemSelectionModel* selectionLeftModel = ui->listView_left->selectionModel();
+
+    /*
+        settings[0] - Copy_type
+        settings[1] - Move_type
+        settings[2] - folder_settings
+        settings[3] - Raw_to_JPEG
+        settings[4] - MTS_to_MP4
+
+    */
+
+    //\DCIM\103MSDCF - путь для фото
+    //\PRIVATE\AVCHD\BDMV\STREAM - путь для видео
+
+    // Создаем объект QDir для исходной директории
+    QDir sourceDir(model->filePath(ui->listView_right->rootIndex())+ "\\DCIM\\103MSDCF");
+
+    // Создаем объект QDir для исходной директории
+    QDir destDir(model->filePath(ui->listView_left->rootIndex()));
+
+    // Получаем список файлов в исходной директории
+    QStringList fileList = sourceDir.entryList(QDir::Files);
+
+    // Проходим по каждому файлу
+    foreach (const QString &fileName, fileList) {
+        // Получаем полный путь к файлу
+        QString filePath = sourceDir.filePath(fileName);
+
+        // Получаем информацию о файле
+        QFileInfo fileInfo(filePath);
+
+        // Получаем формат файла
+        QString format = fileInfo.suffix().toUpper();
+        QDir destinationFormatDir(destDir);
+
+        //Если пользователь выбрал создавать папки
+        if (settings[2] == 1){
+            // Создаем папку для данного формата, если она еще не существует
+            if (!destinationFormatDir.exists(format)) {
+                if (!destinationFormatDir.mkdir(format)) {
+                    qDebug() << "Failed to create directory for format:" << format;
+                    continue;
+                }
+            }
+            // Копируем файл в соответствующую папку
+            if(settings[0] == 1){
+                QString destinationFilePath = destinationFormatDir.filePath(format + "/" + fileName);
+                if (!QFile::copy(filePath, destinationFilePath)) {
+                    qDebug() << "Failed to copy file:" << filePath << "to" << destinationFilePath;
+                }
+                // Перемещаем файл в соответствующую папку
+            }else if (settings[1] == 1){
+                QString destinationFilePath = destinationFormatDir.filePath(format + "/" + fileName);
+                if (!QFile::rename(filePath, destinationFilePath)) {
+                    qDebug() << "Failed to move file:" << filePath << "to" << destinationFilePath;
+                }
+            }
+        }
+        else if (settings[2] == 0){
+            // Копируем файл в соответствующую папку
+            if (!QFile::copy(filePath, destDir.absolutePath())) {
+                qDebug() << "Failed to copy file:" << filePath << "to" << destDir.absolutePath();
+            }
+            // Копируем файл в соответствующую папку
+            if(settings[0] == 1){
+                if (!QFile::copy(filePath, destDir.absolutePath())) {
+                    qDebug() << "Failed to copy file:" << filePath << "to" << destDir.absolutePath();
+                }
+                // Перемещаем файл в соответствующую папку
+            }else if (settings[1] == 1){
+                if (!QFile::rename(filePath, destDir.absolutePath())) {
+                    qDebug() << "Failed to move file:" << filePath << "to" << destDir.absolutePath();
+                }
+            }
+        }
+    }
+
+    qDebug() << "Organizing images completed.";
+    delete[] settings;
+}

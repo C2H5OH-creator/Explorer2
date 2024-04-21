@@ -17,10 +17,13 @@
    <layout class="QGridLayout" name="gridLayout_3">
     <item row="2" column="2">
      <layout class="QGridLayout" name="gridLayout_left">
-      <item row="3" column="1" colspan="2">
-       <widget class="QPushButton" name="copy_to_right">
+      <item row="2" column="1" colspan="2">
+       <widget class="QListView" name="listView_left"/>
+      </item>
+      <item row="5" column="1">
+       <widget class="QPushButton" name="delete_left">
         <property name="text">
-         <string>Copy --&gt;</string>
+         <string>Delete</string>
         </property>
        </widget>
       </item>
@@ -31,13 +34,10 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="1" colspan="2">
-       <widget class="QListView" name="listView_left"/>
-      </item>
-      <item row="4" column="1" colspan="2">
-       <widget class="QPushButton" name="move_to_right">
+      <item row="5" column="2">
+       <widget class="QPushButton" name="permanent_del_left">
         <property name="text">
-         <string>Move --&gt;</string>
+         <string>Permanent delete</string>
         </property>
        </widget>
       </item>
@@ -48,20 +48,27 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="1" colspan="2">
-       <widget class="QLineEdit" name="left_path"/>
-      </item>
-      <item row="5" column="1">
-       <widget class="QPushButton" name="delete_left">
+      <item row="3" column="2">
+       <widget class="QPushButton" name="copy_to_right">
         <property name="text">
-         <string>Delete</string>
+         <string>Copy --&gt;</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="2">
-       <widget class="QPushButton" name="permanent_del_left">
+      <item row="1" column="1" colspan="2">
+       <widget class="QLineEdit" name="left_path"/>
+      </item>
+      <item row="4" column="2">
+       <widget class="QPushButton" name="move_to_right">
         <property name="text">
-         <string>Permanent delete</string>
+         <string>Move --&gt;</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1" rowspan="2">
+       <widget class="QPushButton" name="sd_actions_left">
+        <property name="text">
+         <string>SD actions</string>
         </property>
        </widget>
       </item>
@@ -83,22 +90,8 @@
         </property>
        </widget>
       </item>
-      <item row="7" column="2" colspan="2">
-       <widget class="QPushButton" name="copy_to_left">
-        <property name="text">
-         <string>&lt;-- Copy</string>
-        </property>
-       </widget>
-      </item>
       <item row="2" column="2" colspan="2">
        <widget class="QLineEdit" name="right_path"/>
-      </item>
-      <item row="8" column="2" colspan="2">
-       <widget class="QPushButton" name="move_to_left">
-        <property name="text">
-         <string>&lt;-- Move</string>
-        </property>
-       </widget>
       </item>
       <item row="6" column="2" colspan="2">
        <widget class="QListView" name="listView_right"/>
@@ -117,6 +110,27 @@
        <widget class="QPushButton" name="permanent_del_right">
         <property name="text">
          <string>Permanent delete</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="2">
+       <widget class="QPushButton" name="copy_to_left">
+        <property name="text">
+         <string>&lt;-- Copy</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="2">
+       <widget class="QPushButton" name="move_to_left">
+        <property name="text">
+         <string>&lt;-- Move</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="3" rowspan="2">
+       <widget class="QPushButton" name="sd_actions_right">
+        <property name="text">
+         <string>SD actions</string>
         </property>
        </widget>
       </item>

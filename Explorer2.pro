@@ -10,13 +10,16 @@ CONFIG += c++17
 
 SOURCES += \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    sd_settings.cpp
 
 HEADERS += \
-    mainwindow.h
+    mainwindow.h \
+    sd_settings.h
 
 FORMS += \
-    mainwindow.ui
+    mainwindow.ui \
+    sd_settings.ui
 
 win32:RC_FILE = icons.rc
 
