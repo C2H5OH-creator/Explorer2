@@ -29,11 +29,14 @@ void SD_settings::on_buttonBox_accepted()
         settings[0] = 1;
     }else if(ui->Move_type->isEnabled()){
         settings[1] = 1;
-    }else if (ui->folder_settings->isChecked()){
+    }
+    if (ui->folder_settings->isChecked()){
         settings[2] = 1;
-    }else if (ui->Raw_to_JPEG->isChecked()){
+    }
+    if (ui->Raw_to_JPEG->isChecked()){
         settings[3] = 1;
-    }else if(ui->MTS_to_MP4->isChecked()){
+    }
+    if(ui->MTS_to_MP4->isChecked()){
         settings[4] = 1;
     }
     emit sendLeftData(settings);

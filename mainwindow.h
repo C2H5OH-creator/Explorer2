@@ -74,6 +74,18 @@ private slots:
 
     void on_sd_actions_right_clicked();
 
+    void on_switch_paths_clicked();
+
+    void slotShortcutCtrl_Up();
+
+    void slotShortcutCtrl_Down();
+
+    void slotShortcutCtrl_Eq();
+
+    void viewStop(int &view);
+
+    void wheelEvent(QWheelEvent *event);
+
 public slots:
     void receiveLeftData(int *settins);
     void receiveRightData(int *settins);
@@ -82,6 +94,9 @@ private:
     Ui::MainWindow *ui;
     QFileSystemModel* model;
     QString visited;
+    QShortcut *keyCtrl_Up;    // Ctrl + +
+    QShortcut *keyCtrl_Down;  // Ctrl + -
+    QShortcut *keyCtrl_Eq;    // Ctrl + =
 
 };
 #endif // MAINWINDOW_H
