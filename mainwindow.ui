@@ -11,100 +11,100 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Explorer2</string>
+   <string>Explorer++</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_3">
     <item row="2" column="2">
-     <layout class="QGridLayout" name="gridLayout_left"/>
-    </item>
-    <item row="2" column="3">
      <layout class="QGridLayout" name="gridLayout_center">
-      <item row="4" column="6">
-       <widget class="QPushButton" name="sd_actions_right">
+      <item row="2" column="8">
+       <widget class="QPushButton" name="icon_view_right">
+        <property name="maximumSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
         <property name="text">
-         <string>SD actions</string>
+         <string>ico</string>
         </property>
        </widget>
       </item>
-      <item row="4" column="0">
-       <widget class="QPushButton" name="sd_actions_left">
-        <property name="text">
-         <string>SD actions</string>
+      <item row="2" column="5" colspan="2">
+       <widget class="QLineEdit" name="right_path">
+        <property name="placeholderText">
+         <string>Path/to/your/file</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
-       <widget class="QPushButton" name="permanent_del_left">
-        <property name="text">
-         <string>Permanent delete</string>
+      <item row="3" column="0" colspan="4">
+       <widget class="QListView" name="listView_left">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;12&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="5">
-       <widget class="QPushButton" name="delete_right">
-        <property name="text">
-         <string>Delete</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0" colspan="3">
-       <widget class="QLineEdit" name="left_path"/>
-      </item>
-      <item row="3" column="4" colspan="3">
+      <item row="3" column="5" colspan="4">
        <widget class="QListView" name="listView_right"/>
       </item>
-      <item row="2" column="4" colspan="3">
-       <widget class="QLineEdit" name="right_path"/>
-      </item>
-      <item row="5" column="6">
-       <widget class="QPushButton" name="permanent_del_right">
+      <item row="2" column="7">
+       <widget class="QPushButton" name="list_view_right">
+        <property name="maximumSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
         <property name="text">
-         <string>Permanent delete</string>
+         <string>list</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="0" colspan="3">
-       <widget class="QListView" name="listView_left"/>
-      </item>
-      <item row="4" column="1">
-       <widget class="QPushButton" name="copy_to_right">
+      <item row="2" column="3">
+       <widget class="QPushButton" name="icon_view_left">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
         <property name="text">
-         <string>Copy --&gt;</string>
+         <string>ico</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
-       <widget class="QPushButton" name="delete_left">
-        <property name="text">
-         <string>Delete</string>
+      <item row="2" column="0" colspan="2">
+       <widget class="QLineEdit" name="left_path">
+        <property name="placeholderText">
+         <string>Path/to/your/file</string>
         </property>
        </widget>
       </item>
-      <item row="4" column="5">
-       <widget class="QPushButton" name="move_to_left">
-        <property name="text">
-         <string>&lt;-- Move</string>
+      <item row="2" column="2">
+       <widget class="QPushButton" name="list_view_left">
+        <property name="maximumSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
         </property>
-       </widget>
-      </item>
-      <item row="4" column="2">
-       <widget class="QPushButton" name="move_to_right">
-        <property name="text">
-         <string>Move --&gt;</string>
+        <property name="contextMenuPolicy">
+         <enum>Qt::DefaultContextMenu</enum>
         </property>
-       </widget>
-      </item>
-      <item row="4" column="4">
-       <widget class="QPushButton" name="copy_to_left">
         <property name="text">
-         <string>&lt;-- Copy</string>
+         <string>list</string>
         </property>
        </widget>
       </item>
      </layout>
     </item>
-    <item row="0" column="3">
+    <item row="0" column="2">
      <layout class="QGridLayout" name="gridLayout_up">
       <item row="0" column="3">
        <widget class="QPushButton" name="switch_paths">
@@ -115,6 +115,12 @@
       </item>
       <item row="0" column="5">
        <widget class="QPushButton" name="forward_right">
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>60</height>
+         </size>
+        </property>
         <property name="text">
          <string>Forward</string>
         </property>
@@ -122,6 +128,12 @@
       </item>
       <item row="0" column="4">
        <widget class="QPushButton" name="back_right">
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>60</height>
+         </size>
+        </property>
         <property name="text">
          <string>Back</string>
         </property>
@@ -129,6 +141,12 @@
       </item>
       <item row="0" column="0">
        <widget class="QPushButton" name="back_left">
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>60</height>
+         </size>
+        </property>
         <property name="text">
          <string>Back</string>
         </property>
@@ -136,6 +154,12 @@
       </item>
       <item row="0" column="1">
        <widget class="QPushButton" name="forward_left">
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>60</height>
+         </size>
+        </property>
         <property name="text">
          <string>Forward</string>
         </property>
@@ -157,8 +181,54 @@
       </item>
      </layout>
     </item>
-    <item row="2" column="4">
-     <layout class="QGridLayout" name="gridLayout_right"/>
+    <item row="4" column="2">
+     <layout class="QGridLayout" name="gridLayout_bottom">
+      <item row="1" column="4">
+       <widget class="QPushButton" name="move_to_left">
+        <property name="text">
+         <string>&lt;-- Move</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="3">
+       <widget class="QPushButton" name="copy_to_left">
+        <property name="text">
+         <string>&lt;-- Copy</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" colspan="6">
+       <widget class="QLineEdit" name="rename_enter"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="QPushButton" name="sd_actions_left">
+        <property name="text">
+         <string>SD actions</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="5">
+       <widget class="QPushButton" name="sd_actions_right">
+        <property name="text">
+         <string>SD actions</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QPushButton" name="move_to_right">
+        <property name="text">
+         <string>Move --&gt;</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QPushButton" name="copy_to_right">
+        <property name="text">
+         <string>Copy --&gt;</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>

@@ -18,7 +18,14 @@
 #include <QFile>
 #include <QShortcut>
 #include <QProgressDialog>
+#include <QImageReader>
+#include <QStandardItem>
+#include <QMenu>
+#include <QContextMenuEvent>
+#include <QProcess>
+#include <Windows.h>
 
+#define VERB_OPEN 0x00000000
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -27,6 +34,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     model = new QFileSystemModel(this);
     model->setRootPath("");
+    ui->rename_enter->hide();
 
     //Left
     ui->listView_left->setModel(model);
@@ -63,7 +71,33 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
+
 int view = 0;
+int listViewFocus = 0; // -1 left / +1 right
+
+//Сохранение последнего фокуса
+void MainWindow::properFocus()
+{
+    if (ui->listView_left->hasFocus()){
+        listViewFocus = -1;
+    }
+    else if (ui->listView_right->hasFocus()){
+        listViewFocus = 1;
+    }else {
+        listViewFocus = 0;
+    }
+}
+
+//Сохранение модели относительно последнего фокуса
+QItemSelectionModel* MainWindow::getModelFromFocusedListView() {
+    if (listViewFocus == -1) {
+        return ui->listView_left->selectionModel();
+    }else if (listViewFocus == 1) {
+        return ui->listView_right->selectionModel();
+    } else if (listViewFocus == 0) {
+        return nullptr;
+    }
+}
 
 //Обработка изменение мастшаба
 void MainWindow::viewStop(int &view){
@@ -178,6 +212,7 @@ void MainWindow::setPathView(int type, QString path){
     }
 }
 
+//Открытие папки слева через проводник
 void MainWindow::on_actionOpen_folder_triggered() {
 
     // Open a dialog to select a directory
@@ -195,11 +230,44 @@ void MainWindow::on_actionOpen_folder_triggered() {
     }
 }
 
+bool isImage(const QString &filePath) {
+    QImageReader imageReader(filePath);
+    return imageReader.canRead(); // Возвращает true, если файл является изображением
+}
+
+
 //Оккрытие папки/файла слева
 void MainWindow::on_listView_left_doubleClicked(const QModelIndex &index)
 {
     QFileInfo fileInfo = model->fileInfo(index);
+    properFocus();
+/*
+    // Получаем модель выбора из listView'ов
+    QItemSelectionModel* selectionModel = getModelFromFocusedListView();
 
+    // Получаем список выбранных индексов
+    QModelIndexList selected = selectionModel->selectedIndexes();
+
+    QString filePath = fileInfo.filePath(); // Получаем путь к файлу
+
+    // Проверяем, является ли файл изображением
+    if (isImage(filePath)) {
+        // Получаем соответствующий элемент модели по индексу
+        QStandardItem *item = model->itemFromIndex(index);
+        if (item) {
+            // Загружаем изображение в QPixmap
+            QPixmap originalPixmap(filePath);
+            // Устанавливаем размер для маленькой версии изображения
+            int width = 100; // Новая ширина
+            int height = 100; // Новая высота
+            // Изменяем размер изображения на указанный
+            QPixmap smallPixmap = originalPixmap.scaled(width, height, Qt::KeepAspectRatio);
+
+            // Устанавливаем иконку для элемента
+            item->setIcon(QIcon(smallPixmap));
+        }
+    }
+*/
     if (fileInfo.isDir()){
         ui->listView_left->setRootIndex(index);
         setPathView(0, model->filePath(index));
@@ -236,10 +304,11 @@ void MainWindow::on_back_left_clicked()
     }
 }
 
-//Оккрытие папки/файла справа
+//Открытие папки/файла справа
 void MainWindow::on_listView_right_doubleClicked(const QModelIndex &index)
 {
     QFileInfo fileInfo = model->fileInfo(index);
+    properFocus();
 
     if (fileInfo.isDir()){
         ui->listView_right->setRootIndex(index);
@@ -318,19 +387,19 @@ void MainWindow::on_output_clicked()
 void MainWindow::on_copy_to_left_clicked()
 {
     //Получаем модель выбора из listView'ов
-    QItemSelectionModel* selectionModelLeft = ui->listView_right->selectionModel();
+    QItemSelectionModel* selectionModelRight = ui->listView_right->selectionModel();
 
     // Получаем список выбранных индексов
-    QModelIndexList leftSelected = selectionModelLeft->selectedIndexes();
+    QModelIndexList rightSelected = selectionModelRight->selectedIndexes();
 
     // Проверяем, есть ли выделенные элементы
-    if (leftSelected.isEmpty()) {
+    if (rightSelected.isEmpty()) {
         QMessageBox::information(this, "Copy", "No items selected for copying.");
         return;
     }
 
     // Создаем окно прогресса
-    QProgressDialog progressDialog("Copying files...", "Cancel", 0, leftSelected.size(), this);
+    QProgressDialog progressDialog("Copying files...", "Cancel", 0, rightSelected.size(), this);
     progressDialog.setWindowModality(Qt::WindowModal);
     progressDialog.setWindowTitle("Copying Files");
 
@@ -338,7 +407,7 @@ void MainWindow::on_copy_to_left_clicked()
     bool operationCanceled = false;
 
     // Итерация по выбранным индексам
-    foreach (const QModelIndex &index, leftSelected) {
+    foreach (const QModelIndex &index, rightSelected) {
         QFileInfo fileInfo = model->fileInfo(index);
 
         // Если операция была отменена, выходим из цикла
@@ -410,8 +479,6 @@ void MainWindow::on_copy_to_left_clicked()
 //Копирование файлов справа-налево
 void MainWindow::on_copy_to_right_clicked()
 {
-    //int copyIndex = 1;
-
     // Получаем модель выбора из listView'ов
     QItemSelectionModel* selectionModelLeft = ui->listView_left->selectionModel();
 
@@ -482,7 +549,7 @@ void MainWindow::on_copy_to_right_clicked()
 
         } else if (fileInfo.isDir()) {
             // Реализуем перемещение директорий рекурсивно
-            QString destPath = model->filePath(ui->listView_left->rootIndex()) + '/' + fileInfo.fileName();
+            QString destPath = model->filePath(ui->listView_right->rootIndex()) + '/' + fileInfo.fileName();
             copyDirectoryRecursively(fileInfo.absoluteFilePath(), destPath);
         }
 
@@ -502,27 +569,6 @@ void MainWindow::on_copy_to_right_clicked()
         QMessageBox::warning(this, "Copying Files", "Copying operation was canceled!");
     }
 }
-/*
-void MainWindow::on_listView_left_clicked(const QModelIndex &index)
-{
-    // Check if Ctrl/Cmd is pressed for multiple selection
-    if (!(QApplication::keyboardModifiers() & Qt::ControlModifier)) {
-        // Deselect all if Ctrl/Cmd is not pressed (single selection mode)
-        ui->listView_left->selectionModel()->clearSelection();
-    }
-
-    // Check if Ctrl/Cmd is pressed for multiple selection
-    if (QApplication::keyboardModifiers() & Qt::ControlModifier) {
-        if (ui->listView_left->selectionModel()->isSelected(index)) {
-            // Deselect the item if currently selected
-            ui->listView_left->selectionModel()->select(index, QItemSelectionModel::Deselect);
-        } else {
-            // Select the item if not already selected (original behavior)
-            ui->listView_left->selectionModel()->select(index, QItemSelectionModel::Select);
-        }
-    }
-}
-*/
 
 //Перемещение файлов слева-направо
 void MainWindow::on_move_to_right_clicked() {
@@ -663,7 +709,6 @@ void MainWindow::on_move_to_left_clicked()
             break;
         }
 
-
         // Проверяем тип файла (файл или папка)
         if (fileInfo.isFile()) {
             QString sourcePath = fileInfo.absoluteFilePath();
@@ -762,8 +807,7 @@ void MainWindow::moveDirectoryRecursively(const QString &sourceDir, const QStrin
     source.rmdir(sourceDir);
 }
 
-
-// Функция для рекурсивного копирования директорий
+//Функция рекурсивного копировния директорий
 void MainWindow::copyDirectoryRecursively(const QString &sourceDir, const QString &destDir) {
     QDir source(sourceDir);
     QDir dest(destDir);
@@ -779,8 +823,10 @@ void MainWindow::copyDirectoryRecursively(const QString &sourceDir, const QStrin
         QString dstFilePath = dest.filePath(fileInfo.fileName());
 
         if (fileInfo.isDir()) {
+            // Рекурсивно копируем поддиректории
             copyDirectoryRecursively(srcFilePath, dstFilePath);
         } else {
+            // Копируем файлы
             if (!QFile::copy(srcFilePath, dstFilePath)) {
                 QMessageBox::critical(this, "Copy Error", "Failed to copy file: " + srcFilePath);
             }
@@ -812,11 +858,11 @@ void MainWindow::permanentlyDeleteFiles(const QStringList& filePaths) {
     }
 }
 
-//Удаления слева
-void MainWindow::on_delete_left_clicked()
+//Удаление файлов
+void MainWindow::on_delete_2_clicked()
 {
     // Получаем модель выбора из listView'ов
-    QItemSelectionModel* selectionModel = ui->listView_left->selectionModel();
+    QItemSelectionModel* selectionModel = getModelFromFocusedListView();
 
     // Получаем список выбранных индексов
     QModelIndexList selectedIndexes = selectionModel->selectedIndexes();
@@ -853,56 +899,14 @@ void MainWindow::on_delete_left_clicked()
             }
         }
     }
+
 }
 
-//Удаление справа
-void MainWindow::on_delete_right_clicked()
+//Удаление перм
+void MainWindow::on_permanent_del_clicked()
 {
     // Получаем модель выбора из listView'ов
-    QItemSelectionModel* selectionModel = ui->listView_right->selectionModel();
-
-    // Получаем список выбранных индексов
-    QModelIndexList selectedIndexes = selectionModel->selectedIndexes();
-
-    // Проверяем, есть ли выделенные элементы
-    if (selectedIndexes.isEmpty()) {
-        QMessageBox::information(this, "Delete", "No items selected for deletion.");
-        return;
-    }
-
-    // Переменная для подтверждения удаления
-    QMessageBox::StandardButton confirmDelete = QMessageBox::question(
-        this,
-        "Confirm Deletion",
-        "Are you sure you want to delete the selected items?",
-        QMessageBox::Yes | QMessageBox::No,
-        QMessageBox::No
-        );
-
-    if (confirmDelete == QMessageBox::Yes) {
-        // Итерация по выбранным индексам
-        foreach (const QModelIndex &index, selectedIndexes) {
-            QFileInfo fileInfo = model->fileInfo(index);
-
-            // Получаем путь к файлу или папке
-            QString filePath = fileInfo.absoluteFilePath();
-
-            // Перемещение файла или папки в корзину
-            bool success = QFile::moveToTrash(filePath);
-
-            // Проверка успеха перемещения
-            if (!success) {
-                QMessageBox::critical(this, "Delete Error", "Failed to delete file: " + filePath);
-            }
-        }
-    }
-}
-
-//Удаление слева перм
-void MainWindow::on_permanent_del_left_clicked()
-{
-    // Получаем модель выбора из listView'ов
-    QItemSelectionModel* selectionModel = ui->listView_left->selectionModel();
+    QItemSelectionModel* selectionModel = getModelFromFocusedListView();
 
     // Получаем список выбранных индексов
     QModelIndexList selectedIndexes = selectionModel->selectedIndexes();
@@ -936,45 +940,7 @@ void MainWindow::on_permanent_del_left_clicked()
     } else if (choice == QMessageBox::No) return;
 }
 
-//Удаление справа перм
-void MainWindow::on_permanent_del_right_clicked()
-{
-    // Получаем модель выбора из listView'ов
-    QItemSelectionModel* selectionModel = ui->listView_right->selectionModel();
-
-    // Получаем список выбранных индексов
-    QModelIndexList selectedIndexes = selectionModel->selectedIndexes();
-
-    // Проверяем, есть ли выделенные элементы
-    if (selectedIndexes.isEmpty()) {
-        QMessageBox::information(this, "Delete", "No items selected for deletion.");
-        return;
-    }
-
-    // Запрос подтверждения удаления и выбор между корзиной и полным удалением
-    QMessageBox::StandardButton choice = QMessageBox::question(
-        this,
-        "Confirm Deletion",
-        "Do you want to delete the selected items permanently?",
-        QMessageBox::Yes | QMessageBox::No, QMessageBox::No
-
-        );
-
-    if (choice == QMessageBox::Yes) {
-        // Список путей к выбранным файлам
-        QStringList filePaths;
-
-        foreach (const QModelIndex &index, selectedIndexes) {
-            QFileInfo fileInfo = model->fileInfo(index);
-            filePaths.append(fileInfo.absoluteFilePath());
-        }
-
-        // Полное удаление файлов
-        permanentlyDeleteFiles(filePaths);
-    } else if (choice == QMessageBox::No) return;
-}
-
-
+//Открытие окна SD actions
 void MainWindow::on_sd_actions_left_clicked()
 {
     SD_settings sd_settings_right(this);
@@ -982,6 +948,7 @@ void MainWindow::on_sd_actions_left_clicked()
     sd_settings_right.exec();
 }
 
+//Обработка действий из SD actions
 void MainWindow::receiveLeftData(int *settings)
 {
 
@@ -1094,7 +1061,6 @@ void MainWindow::receiveLeftData(int *settings)
     qDebug() << "Organizing images completed.";
     delete[] settings;
 }
-
 
 void MainWindow::on_sd_actions_right_clicked()
 {
@@ -1210,3 +1176,262 @@ void MainWindow::on_switch_paths_clicked()
     ui->listView_right->setRootIndex(sourcePath);
 
 }
+
+//Переименование файлов часть 1
+void MainWindow::on_rename_clicked()
+{
+    // Получаем модель выбора из listView'ов
+    QItemSelectionModel* selectionModel = getModelFromFocusedListView();
+    // Получаем список выбранных индексов
+    QModelIndexList selected = selectionModel->selectedIndexes();
+    ui->rename_enter->show();
+
+    // Итерация по выбранным индексам
+    foreach (const QModelIndex &index, selected) {
+        if (selected.size() == 1){
+            QFileInfo fileInfo = model->fileInfo(index);
+            QString oldFileName = fileInfo.fileName();
+            ui->rename_enter->setText(oldFileName);
+            break;
+        }else{
+            QMessageBox::information(this, "Renaming", "You cannot rename multiple files at once!");
+            break;
+        }
+    }
+}
+
+//Переименование файлов часть 2
+void MainWindow::on_rename_enter_returnPressed()
+{
+    // Получаем модель выбора из listView'ов
+    QItemSelectionModel* selectionModel = getModelFromFocusedListView();
+
+    // Получаем список выбранных индексов
+    QModelIndexList selected = selectionModel->selectedIndexes();
+
+    // Итерация по выбранным индексам
+    foreach (const QModelIndex &index, selected) {
+        QFileInfo fileInfo = model->fileInfo(index);
+        QString filePath = fileInfo.path();
+        QString newSingleFileName = ui->rename_enter->text();
+        QString oldPath = model->filePath(index);
+        QDir dir = model->fileInfo(index).dir();
+
+        ui->rename_enter->clear();
+        ui->rename_enter->hide();
+
+        // Проверяем тип файла (файл или папка)
+        if (fileInfo.isFile()) {
+            QString sourcePath = fileInfo.absoluteFilePath();
+            // Проверяем, существует ли файл в месте назначения
+            if (QFile::exists(sourcePath)) {
+                if (selected.size() == 1){
+                    QFile::rename (oldPath,  filePath + "\\" + newSingleFileName);
+                    break;
+                }
+            }
+        }
+        if (fileInfo.isDir()) {
+            QString destinationPath = dir.absolutePath() + "/" + newSingleFileName;
+            // Проверяем, существует ли файл или папка с таким же именем в месте назначения
+            if (!QDir(destinationPath).exists()) {
+                if (selected.size() == 1) {
+                    qDebug() << oldPath;
+                    dir.rename(oldPath, newSingleFileName);
+                    break;
+                }
+            } else {
+                qDebug() << "Папка с именем" << newSingleFileName << "уже существует в этой директории.";
+                // Здесь можно добавить обработку случая, когда папка с таким именем уже существует
+            }
+        }
+    }
+}
+
+//Обработка фокуса-1
+void MainWindow::on_listView_left_clicked(const QModelIndex &index)
+{
+    properFocus();
+}
+
+//Обработка фокуса-1
+void MainWindow::on_listView_right_clicked(const QModelIndex &index)
+{
+    properFocus();
+}
+
+//Вид списка слева
+void MainWindow::on_list_view_left_clicked()
+{
+    ui->listView_left->setUniformItemSizes(false);
+    ui->listView_left->setViewMode(QListView::ListMode);
+}
+
+
+void MainWindow::on_icon_view_left_clicked()
+{
+    ui->listView_left->setUniformItemSizes(true);
+    ui->listView_left->setWordWrap(true);
+    ui->listView_left->setViewMode(QListView::IconMode);
+}
+
+//Вид списка справа
+void MainWindow::on_list_view_right_clicked()
+{
+    ui->listView_right->setUniformItemSizes(false);
+    ui->listView_right->setViewMode(QListView::ListMode);
+}
+
+//Вид иконок справа
+void MainWindow::on_icon_view_right_clicked()
+{
+    ui->listView_right->setUniformItemSizes(true);
+    ui->listView_right->setWordWrap(true);
+    ui->listView_right->setViewMode(QListView::IconMode);
+}
+
+void MainWindow::contextMenuEvent(QContextMenuEvent *event)
+{
+    // Получаем модель выбора из listView'ов
+    QItemSelectionModel* selectionModel = getModelFromFocusedListView();
+
+    QMenu menu(this); // Создаем объект контекстного меню
+
+    QAction *open = menu.addAction("Open");
+    QAction *open_with = menu.addAction("Open with...");
+
+    //Сортировка
+    menu.addSeparator();
+    QMenu *sortMenu = menu.addMenu("Sort by...");
+    QAction *actionSortByName = sortMenu->addAction("Name");
+    QAction *actionSortByDate = sortMenu->addAction("Data");
+    QAction *actionSortBySize = sortMenu->addAction("Size");
+
+    //Вид
+    QMenu *viewMenu = menu.addMenu("View...");
+    QAction *listView = viewMenu->addAction("List");
+    QAction *iconView_EXL = viewMenu->addAction("Extra large icons");
+    QAction *iconView_L = viewMenu->addAction("Large icons");
+    QAction *iconView_M = viewMenu->addAction("Medium icons");
+    QAction *iconView_S = viewMenu->addAction("Smal icons");
+
+    QAction *refresh = menu.addAction("Refresh");
+    menu.addSeparator();
+
+    //Разное
+    QAction *rename = menu.addAction("Rename");
+    QAction *bin_delete = menu.addAction("Delete");
+    QAction *perm_delete = menu.addAction("Peramnent delete");
+
+    //Создание
+    menu.addSeparator();
+    QMenu *createMenu = menu.addMenu("New...");
+    QAction *newFolder = createMenu->addAction("Folder");
+    QAction *newFile = createMenu->addAction("File");
+    menu.addSeparator();
+
+    //Метаданные
+    QAction *properties = menu.addAction("Properties");
+    QAction *editMeta = menu.addAction("Edit metadata");
+
+    // Выбираем действие, которое было выбрано пользователем
+    QAction *selectedAction = menu.exec(event->globalPos());
+
+    // Обрабатываем выбранное действие
+    if (selectedAction == open){
+        QModelIndexList selectedIndexes = selectionModel->selectedIndexes();
+        foreach (const QModelIndex &index, selectedIndexes) {
+            QFileInfo fileInfo = model->fileInfo(index);
+            QDesktopServices::openUrl(QUrl::fromLocalFile(fileInfo.absoluteFilePath()));
+            break;
+        }
+    }
+    else if(selectedAction == open_with){
+        QModelIndexList selectedIndexes = selectionModel->selectedIndexes();
+        foreach (const QModelIndex &index, selectedIndexes) {
+            QFileInfo fileInfo = model->fileInfo(index);
+            //HINSTANCE hInstance = ShellExecuteA(0, VERB_OPEN, fileInfo.absoluteFilePath().toUtf8().constData(), 0, 0, SW_SHOWDEFAULT);
+            //QDesktopServices::openUrl(QUrl::fromUserInput(fileInfo.absoluteFilePath()));
+            //QString param = "/select,\"" + QDir::toNativeSeparators(fileInfo.absoluteFilePath()) + "\"";
+            //QProcess::startDetached("explorer.exe", QStringList() << param);
+            break;
+        }
+    }
+    else if(selectedAction == actionSortByName){
+        //Сортировка по имени
+
+    }
+    else if(selectedAction == actionSortByDate){
+        //Сортировка по дате
+
+    }
+    else if(selectedAction == actionSortBySize){
+        //Сортировка по размеру
+
+    }
+    else if(selectedAction == listView){
+        //Вид как список
+        if (listViewFocus == -1) on_list_view_left_clicked();
+        if (listViewFocus == 1) on_list_view_right_clicked();
+    }
+    else if(selectedAction == iconView_EXL){
+        //Вид как очень большие иконки
+        if (listViewFocus == -1) on_icon_view_left_clicked();
+        if (listViewFocus == 1) on_icon_view_right_clicked();
+
+    }
+    else if(selectedAction == iconView_L){
+        //Вид как большие иконки
+        if (listViewFocus == -1) on_icon_view_left_clicked();
+        if (listViewFocus == 1) on_icon_view_right_clicked();
+
+    }
+    else if(selectedAction == iconView_M){
+        //Вид как средние иконки
+        if (listViewFocus == -1) on_icon_view_left_clicked();
+        if (listViewFocus == 1) on_icon_view_right_clicked();
+
+    }
+    else if(selectedAction == iconView_S){
+        //Вид как маленькие иконки
+        if (listViewFocus == -1) on_icon_view_left_clicked();
+        if (listViewFocus == 1) on_icon_view_right_clicked();
+
+    }
+    else if(selectedAction == refresh){
+        //Обновление
+        if (listViewFocus == -1) ui->listView_left->update();
+        if (listViewFocus == 1) ui->listView_right->update();
+    }
+    else if (selectedAction == newFolder) {
+        //Создание новой папки
+
+    }
+    else if (selectedAction == newFile) {
+        //Создание нового файла
+
+    }
+    else if (selectedAction == bin_delete) {
+        //Перемещение в корзину
+        on_delete_2_clicked();
+    }
+    else if (selectedAction == rename){
+        //Переименование
+        on_rename_clicked();
+    }
+    else if (selectedAction == perm_delete) {
+        //Удаление, минуя корзину
+        on_permanent_del_clicked();
+    }
+    else if (selectedAction == properties) {
+        //Свойства
+
+    }
+    else if (selectedAction == editMeta) {
+        //Редактор метаданных
+
+    }
+}
+
+
+

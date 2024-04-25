@@ -29,6 +29,9 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+protected:
+    void contextMenuEvent(QContextMenuEvent *event) override;
+
 private slots:
     void on_actionOpen_folder_triggered();
 
@@ -44,8 +47,6 @@ private slots:
 
     void on_back_left_clicked();
 
-    //void on_listView_left_clicked(const QModelIndex &index);
-
     void on_move_to_right_clicked();
 
     void on_move_to_left_clicked();
@@ -60,15 +61,9 @@ private slots:
 
     void on_copy_to_left_clicked();
 
-    void on_delete_left_clicked();
-
-    void on_delete_right_clicked();
-
     void permanentlyDeleteFiles(const QStringList& filePaths);
 
-    void on_permanent_del_left_clicked();
-
-    void on_permanent_del_right_clicked();
+    void on_permanent_del_clicked();
 
     void on_sd_actions_left_clicked();
 
@@ -85,6 +80,28 @@ private slots:
     void viewStop(int &view);
 
     void wheelEvent(QWheelEvent *event);
+
+    void on_rename_enter_returnPressed();
+
+    void on_rename_clicked();
+
+    QItemSelectionModel* getModelFromFocusedListView();
+
+    void properFocus();
+
+    void on_listView_left_clicked(const QModelIndex &index);
+
+    void on_listView_right_clicked(const QModelIndex &index);
+
+    void on_delete_2_clicked();
+
+    void on_list_view_left_clicked();
+
+    void on_icon_view_left_clicked();
+
+    void on_list_view_right_clicked();
+
+    void on_icon_view_right_clicked();
 
 public slots:
     void receiveLeftData(int *settins);
