@@ -13,7 +13,7 @@ class SD_settings : public QDialog
 
 signals:
     void sendLeftData(int *settings);
-    void sendRightData(int *settings);
+    //void sendRightData(int *settings);
 
 public:
     explicit SD_settings(QWidget *parent = nullptr);

@@ -25,8 +25,6 @@
 #include <QProcess>
 #include <Windows.h>
 
-#define VERB_OPEN 0x00000000
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -943,9 +941,9 @@ void MainWindow::on_permanent_del_clicked()
 //Открытие окна SD actions
 void MainWindow::on_sd_actions_left_clicked()
 {
-    SD_settings sd_settings_right(this);
-    connect(&sd_settings_right, &SD_settings::sendLeftData, this, &MainWindow::receiveLeftData);
-    sd_settings_right.exec();
+    SD_settings sd_settings_left(this);
+    connect(&sd_settings_left, &SD_settings::sendLeftData, this, &MainWindow::receiveLeftData);
+    sd_settings_left.exec();
 }
 
 //Обработка действий из SD actions
@@ -1061,14 +1059,7 @@ void MainWindow::receiveLeftData(int *settings)
     qDebug() << "Organizing images completed.";
     delete[] settings;
 }
-
-void MainWindow::on_sd_actions_right_clicked()
-{
-    SD_settings sd_settings_right(this);
-    connect(&sd_settings_right, &SD_settings::sendRightData, this, &MainWindow::receiveRightData);
-    sd_settings_right.exec();
-}
-
+/*
 void MainWindow::receiveRightData(int *settings)
 {
     /*
@@ -1078,7 +1069,6 @@ void MainWindow::receiveRightData(int *settings)
         settings[3] - Raw_to_JPEG
         settings[4] - MTS_to_MP4
 
-    */
 
     //\DCIM\103MSDCF - путь для фото
     //\PRIVATE\AVCHD\BDMV\STREAM - путь для видео
@@ -1165,6 +1155,8 @@ void MainWindow::receiveRightData(int *settings)
     qDebug() << "Organizing images completed.";
     delete[] settings;
 }
+
+*/
 
 //Жонглирование путями
 void MainWindow::on_switch_paths_clicked()
@@ -1434,4 +1426,12 @@ void MainWindow::contextMenuEvent(QContextMenuEvent *event)
 }
 
 
+
+
+void MainWindow::on_actionSD_actions_triggered()
+{
+    SD_settings sd_settings_left(this);
+    connect(&sd_settings_left, &SD_settings::sendLeftData, this, &MainWindow::receiveLeftData);
+    sd_settings_left.exec();
+}
 

@@ -67,7 +67,7 @@ private slots:
 
     void on_sd_actions_left_clicked();
 
-    void on_sd_actions_right_clicked();
+    //void on_sd_actions_right_clicked();
 
     void on_switch_paths_clicked();
 
@@ -103,9 +103,11 @@ private slots:
 
     void on_icon_view_right_clicked();
 
+    void on_actionSD_actions_triggered();
+
 public slots:
     void receiveLeftData(int *settins);
-    void receiveRightData(int *settins);
+    //void receiveRightData(int *settins);
 
 private:
     Ui::MainWindow *ui;
