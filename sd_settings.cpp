@@ -6,6 +6,8 @@ SD_settings::SD_settings(QWidget *parent)
     , ui(new Ui::SD_settings)
 {
     ui->setupUi(this);
+    ui->from_path->setReadOnly(true);
+    ui->to_path->setReadOnly(true);
 }
 
 SD_settings::~SD_settings()
@@ -16,7 +18,12 @@ SD_settings::~SD_settings()
 void SD_settings::on_buttonBox_accepted()
 {
     int *settings = new int[5];
+    settings[0] = 0;
+    settings[1] = 0;
+    settings[2] = 0;
+    settings[3] = 0;
     settings[4] = 0;
+
     /*
         settings[0] - Copy_type
         settings[1] - Move_type
@@ -25,9 +32,10 @@ void SD_settings::on_buttonBox_accepted()
         settings[4] - MTS_to_MP4
 
     */
-    if(ui->Copy_type->isEnabled()){
+    if(ui->Copy_type->isChecked()){
         settings[0] = 1;
-    }else if(ui->Move_type->isEnabled()){
+    }
+    if(ui->Move_type->isChecked()){
         settings[1] = 1;
     }
     if (ui->folder_settings->isChecked()){
@@ -39,6 +47,13 @@ void SD_settings::on_buttonBox_accepted()
     if(ui->MTS_to_MP4->isChecked()){
         settings[4] = 1;
     }
-    emit sendLeftData(settings);
+    emit sendSDActionsData(settings);
 }
 
+void SD_settings::receiveToPath(QString path){
+    ui->to_path->setText(path);
+}
+
+void SD_settings::receiveFromPath(QString path){
+    ui->from_path->setText(path);
+}

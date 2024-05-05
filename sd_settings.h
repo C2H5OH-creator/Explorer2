@@ -12,7 +12,7 @@ class SD_settings : public QDialog
     Q_OBJECT
 
 signals:
-    void sendLeftData(int *settings);
+    void sendSDActionsData(int *settings);
     //void sendRightData(int *settings);
 
 public:
@@ -21,6 +21,10 @@ public:
 
 private slots:
     void on_buttonBox_accepted();
+
+public slots:
+    void receiveToPath(QString path);
+    void receiveFromPath(QString path);
 
 private:
     Ui::SD_settings *ui;

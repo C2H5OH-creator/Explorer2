@@ -14,6 +14,7 @@ SOURCES += \
     sd_settings.cpp
 
 HEADERS += \
+    list.h \
     mainwindow.h \
     sd_settings.h
 

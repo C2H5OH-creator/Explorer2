@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>523</width>
-    <height>398</height>
+    <width>465</width>
+    <height>407</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,41 +26,7 @@
    </item>
    <item row="1" column="0">
     <layout class="QGridLayout" name="gridLayout">
-     <item row="4" column="0">
-      <widget class="QCheckBox" name="folder_settings">
-       <property name="text">
-        <string>Отсортировать файлы по форматам в папки</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QRadioButton" name="Copy_type">
-       <property name="text">
-        <string>Copy (пока только для фото)</string>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup</string>
-       </attribute>
-      </widget>
-     </item>
-     <item row="6" column="0">
-      <widget class="QCheckBox" name="MTS_to_MP4">
-       <property name="text">
-        <string>Конвертировать MTS в MP4 при переносе</string>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="0">
-      <widget class="QCheckBox" name="Raw_to_JPEG">
-       <property name="text">
-        <string>Конвертировать RAW в JPEG при переносе</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QComboBox" name="Drives"/>
-     </item>
-     <item row="2" column="1">
+     <item row="3" column="1">
       <widget class="QRadioButton" name="Move_type">
        <property name="text">
         <string>Move (пока только для фото)</string>
@@ -70,17 +36,60 @@
        </attribute>
       </widget>
      </item>
-     <item row="0" column="0" colspan="2">
-      <widget class="QTextBrowser" name="textBrowser">
-       <property name="html">
-        <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-hr { height: 1px; border-width: 0; }
-li.unchecked::marker { content: &quot;\2610&quot;; }
-li.checked::marker { content: &quot;\2612&quot;; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;Внимание! Проверьте правильность выбраных папок. Перенос файлов работает из правого окна в левое, не наоборот! &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <item row="4" column="1">
+      <widget class="QCheckBox" name="folder_settings">
+       <property name="text">
+        <string>Отсортировать файлы по форматам в папки</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="from_path"/>
+     </item>
+     <item row="5" column="1">
+      <widget class="QCheckBox" name="Raw_to_JPEG">
+       <property name="text">
+        <string>Конвертировать RAW в JPEG при переносе</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QRadioButton" name="Copy_type">
+       <property name="text">
+        <string>Copy (пока только для фото)</string>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup</string>
+       </attribute>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="to_path"/>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="to">
+       <property name="maximumSize">
+        <size>
+         <width>20</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>To</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="1">
+      <widget class="QCheckBox" name="MTS_to_MP4">
+       <property name="text">
+        <string>Конвертировать MTS в MP4 при переносе</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="from">
+       <property name="text">
+        <string>From</string>
        </property>
       </widget>
      </item>

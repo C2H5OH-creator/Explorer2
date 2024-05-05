@@ -11,7 +11,7 @@
 #include <QFileSystemModel>
 #include <QMainWindow>
 #include <QKeyEvent>
-
+#include "list.h"
 
 
 
@@ -67,8 +67,6 @@ private slots:
 
     void on_sd_actions_left_clicked();
 
-    //void on_sd_actions_right_clicked();
-
     void on_switch_paths_clicked();
 
     void slotShortcutCtrl_Up();
@@ -103,11 +101,29 @@ private slots:
 
     void on_icon_view_right_clicked();
 
-    void on_actionSD_actions_triggered();
+    //void on_actionSD_actions_triggered();
+
+    void new_dir();
+
+    void new_file();
+
+    void on_new_name_returnPressed();
+
+    void keyPressEvent(QKeyEvent *event);
+
+    void on_comboBox_Lhistory_currentIndexChanged(int index);
+
+    void on_forward_left_clicked();
+
+    void on_forward_right_clicked();
 
 public slots:
-    void receiveLeftData(int *settins);
+    void receiveSDActionsData(int *settins);
     //void receiveRightData(int *settins);
+
+signals:
+    void sendToPath(QString path);
+    void sendFromPath(QString path);
 
 private:
     Ui::MainWindow *ui;
@@ -116,6 +132,9 @@ private:
     QShortcut *keyCtrl_Up;    // Ctrl + +
     QShortcut *keyCtrl_Down;  // Ctrl + -
     QShortcut *keyCtrl_Eq;    // Ctrl + =
+
+    long long Lhindex = 0;
+    long long Rhindex = 0;
 
 };
 #endif // MAINWINDOW_H
