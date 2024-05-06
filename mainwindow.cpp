@@ -25,6 +25,8 @@
 #include <QContextMenuEvent>
 #include <QProcess>
 #include <Windows.h>
+#include <QImage>
+#include <QBuffer>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -58,15 +60,27 @@ MainWindow::MainWindow(QWidget *parent)
     // цепляем обработчик нажатия клавиши
     connect(keyCtrl_Up, SIGNAL(activated()), this, SLOT(slotShortcutCtrl_Up()));
 
-    keyCtrl_Eq = new QShortcut(this);   // Инициализируем объект
+    keyCtrl_Eq = new QShortcut(this);
     keyCtrl_Eq->setKey(Qt::CTRL | Qt::Key_Equal);    // Устанавливаем код клавиши
     // цепляем обработчик нажатия клавиши
     connect(keyCtrl_Eq, SIGNAL(activated()), this, SLOT(slotShortcutCtrl_Eq()));
 
-    keyCtrl_Down = new QShortcut(this); // Инициализируем объект
+    keyCtrl_Down = new QShortcut(this);
     keyCtrl_Down->setKey(Qt::CTRL | Qt::Key_Minus); // Устанавливаем сочетание клавиш
     // подключаем обработчик нажатия клавиши
     connect(keyCtrl_Down, SIGNAL(activated()), this, SLOT(slotShortcutCtrl_Down()));
+
+    // шорткат bin_delete
+    QShortcut *bin_del = new QShortcut(QKeySequence(Qt::Key_Delete), this);
+    connect(bin_del, &QShortcut::activated, this, &MainWindow::on_delete_2_clicked);
+
+    // шорткат perm_delete
+    QShortcut *perm_del = new QShortcut(QKeySequence(Qt::SHIFT | Qt::Key_Delete), this);
+    connect(perm_del, &QShortcut::activated, this, &MainWindow::on_permanent_del_clicked);
+
+    // шорткат delete
+    //QShortcut *bin_del = new QShortcut(QKeySequence(Qt::Key_Delete), this);
+    //connect(bin_del, &QShortcut::activated, this, &MainWindow::on_delete_2_clicked);
 
 }
 
@@ -308,6 +322,19 @@ void MainWindow::on_back_left_clicked()
     }
 }
 
+void MainWindow::on_comboBox_Lhistory_currentIndexChanged(int index)
+{
+    // Получаем нынешний root index
+    QModelIndex currentRootIndex = ui->listView_left->rootIndex();
+    QFileInfo fileInfo = model->fileInfo(currentRootIndex);
+    QDir dir = fileInfo.dir();
+    dir.cd(left_history.get(index));
+    ui->listView_left->setRootIndex(model->index(dir.absolutePath()));
+    if (index > 0) Lhindex = index;
+
+    //qDebug() <<"Lhindex" << Lhindex;
+}
+
 void MainWindow::on_forward_left_clicked()
 {
     // Получаем нынешний root index
@@ -394,6 +421,20 @@ void MainWindow::on_back_right_clicked()
         ui->comboBox_Rhistory->setCurrentText(right_history.get(Rhindex));
         ui->listView_right->setRootIndex(model->index(dir.absolutePath()));
     }
+}
+
+
+void MainWindow::on_comboBox_Rhistory_currentIndexChanged(int index)
+{
+    // Получаем нынешний root index
+    QModelIndex currentRootIndex = ui->listView_right->rootIndex();
+    QFileInfo fileInfo = model->fileInfo(currentRootIndex);
+    QDir dir = fileInfo.dir();
+    dir.cd(right_history.get(index));
+    ui->listView_right->setRootIndex(model->index(dir.absolutePath()));
+    if (index > 0) Rhindex = index;
+
+    //qDebug() <<"Rhindex" << Rhindex;
 }
 
 void MainWindow::on_forward_right_clicked()
@@ -1041,6 +1082,28 @@ void MainWindow::on_sd_actions_left_clicked()
     sd_settings.exec();
 }
 
+/*
+// Функция конвертации потока RAW в JPEG
+void convertRawToJpeg(const uchar *rawImage, int width, int height, const QString &outputFileName) {
+    // Создаем QImage из RAW данных
+    QImage tmpImage = QImage(rawImage, width, height, QImage::Format_RGB32);
+
+    // Создаем буфер для сохранения JPEG изображения
+    QByteArray jpegData;
+    QBuffer buffer(&jpegData);
+    buffer.open(QIODevice::WriteOnly);
+
+    // Сохраняем QImage в формате JPEG
+    tmpImage.save(&buffer, "JPG");
+
+    // Сохраняем JPEG данные в файл
+    QFile file(outputFileName);
+    if (file.open(QIODevice::WriteOnly)) {
+        file.write(jpegData);
+        file.close();
+    }
+}
+*/
 //Обработка действий из SD actions
 void MainWindow::receiveSDActionsData(int *settings)
 {
@@ -1051,110 +1114,318 @@ void MainWindow::receiveSDActionsData(int *settings)
         settings[2] - folder_settings
         settings[3] - Raw_to_JPEG
         settings[4] - MTS_to_MP4
+        settings[5] - 0 - Photo && video || 1 - Only photo || 2 - Only video
 
     */
+    //Обработка и фото, и видео
+    if(settings[5] == 0){
+        //Директории для фото и видео
+        QDir sourcePhotoDir = model->filePath(ui->listView_left->rootIndex()) + "/DCIM/103MSDCF";
+        QDir sourceVideoDir = model->filePath(ui->listView_left->rootIndex()) + "/PRIVATE/AVCHD/BDMV/STREAM";
 
-    // Создаем объект QDir для исходной директории
-    QDir sourceDir(model->filePath(ui->listView_left->rootIndex())+ "\\DCIM\\103MSDCF");
+        //QDir destPhotoDir = model->filePath(ui->listView_right->rootIndex()) + "/Photo";
+        //QDir destVideoDir = model->filePath(ui->listView_right->rootIndex()) + "/Video";
+        QDir destDir = model->filePath(ui->listView_right->rootIndex());
 
-    // Создаем объект QDir для исходной директории
-    QDir destDir(model->filePath(ui->listView_right->rootIndex()));
+        // Получаем список файлов в исходной директории
+        QStringList filePhotoList = sourcePhotoDir.entryList(QDir::Files);
+        QStringList fileVideoList = sourceVideoDir.entryList(QDir::Files);
 
-    // Получаем список файлов в исходной директории
-    QStringList fileList = sourceDir.entryList(QDir::Files);
-
-    // Создаем окно прогресса
-    QProgressDialog progressDialog("Copying files...", "Cancel", 0, fileList.size(), this);
-    progressDialog.setWindowModality(Qt::WindowModal);
-    progressDialog.setWindowTitle("Copying Files");
-
-    unsigned long copiedFilesCount = 0;
-    bool operationCanceled = false;
-
-    // Проходим по каждому файлу
-    foreach (const QString &fileName, fileList) {
-        // Получаем полный путь к файлу
-        QString filePath = sourceDir.filePath(fileName);
-
-        // Получаем информацию о файле
-        QFileInfo fileInfo(filePath);
-
-        // Получаем формат файла
-        QString format = fileInfo.suffix().toLower();
-        QDir destinationFormatDir(destDir);
-
-        // Если операция была отменена, выходим из цикла
-        if (operationCanceled) {
-            break;
+        // Создаем окно прогресса
+        QProgressDialog progressDialog("Doing things...", "Cancel", 0, filePhotoList.size() + fileVideoList.size(), this);
+        progressDialog.setWindowModality(Qt::WindowModal);
+        if(settings[1] == 1) {
+            progressDialog.setWindowTitle("Moving Files");
         }
+        else if(settings[0] == 1) progressDialog.setWindowTitle("Copying Files");
 
-        //qDebug() << settings[2];
+        unsigned long copiedFilesCount = 0;
+        bool operationCanceled = false;
 
-        // Если пользователь выбрал создавать папки
-        if (settings[2] == 1){
-            // Создаем папку для данного формата, если она еще не существует
-            if (!destinationFormatDir.exists(format)) {
-                if (!destinationFormatDir.mkdir(format)) {
-                    qDebug() << "Failed to create directory for format:" << format;
-                    continue;
+        // Проходим по каждому фото
+        foreach (const QString &fileName, filePhotoList) {
+            // Получаем полный путь к файлу
+            QString filePath = sourcePhotoDir.filePath(fileName);
+
+            // Получаем информацию о файле
+            QFileInfo fileInfo(filePath);
+
+            // Получаем формат файла
+            QString format = fileInfo.suffix().toLower();
+            QDir destinationFormatDir = destDir;
+
+            // Если операция была отменена, выходим из цикла
+            if (operationCanceled) {
+                break;
+            }
+
+            // Если пользователь выбрал создавать папки
+            if (settings[2] == 1){
+                // Создаем папку для данного формата, если она еще не существует
+                if (!destinationFormatDir.exists("Photo")) {
+                    if (!destinationFormatDir.mkdir("Photo")) {
+                        qDebug() << "Failed to create directory Photo :" << format;
+                        continue;
+                    }
+                }
+                QDir destinationPhotoFormatDir = model->filePath(ui->listView_right->rootIndex()) + "/Photo";
+                // Создаем папку для данного формата, если она еще не существует
+                if (!destinationPhotoFormatDir.exists(format)) {
+                    if (!destinationPhotoFormatDir.mkdir(format)) {
+                        qDebug() << "Failed to create directory for format:" << format;
+                        continue;
+                    }
+                }
+                // Копируем файл в соответствующую папку
+                if(settings[0] == 1){
+                    QString destinationFilePath = destinationPhotoFormatDir.filePath(format + "/" + fileName);
+                    if (!QFile::copy(filePath, destinationFilePath)) {
+                        qDebug() << "Failed to copy file:" << filePath << "to" << destinationFilePath;
+                    } else {
+                        copiedFilesCount++;
+                    }
+                    // Перемещаем файл в соответствующую папку
+                } else if (settings[1] == 1){
+                    QString destinationFilePath = destinationPhotoFormatDir.filePath(format + "/" + fileName);
+                    if (!QFile::rename(filePath, destinationFilePath)) {
+                        qDebug() << "Failed to move file:" << filePath << "to" << destinationFilePath;
+                    } else {
+                        copiedFilesCount++;
+                    }
                 }
             }
-            // Копируем файл в соответствующую папку
-            if(settings[0] == 1){
-                QString destinationFilePath = destinationFormatDir.filePath(format + "/" + fileName);
-                if (!QFile::copy(filePath, destinationFilePath)) {
-                    qDebug() << "Failed to copy file:" << filePath << "to" << destinationFilePath;
-                } else {
-                    copiedFilesCount++;
-                }
-                // Перемещаем файл в соответствующую папку
-            } else if (settings[1] == 1){
-                QString destinationFilePath = destinationFormatDir.filePath(format + "/" + fileName);
-                if (!QFile::rename(filePath, destinationFilePath)) {
-                    qDebug() << "Failed to move file:" << filePath << "to" << destinationFilePath;
-                } else {
-                    copiedFilesCount++;
+            if (settings[2] == 0){
+                // Копируем файл в соответствующую папку
+                if(settings[0] == 1){
+                    QString destinationFilePath = destDir.filePath(fileName);
+                    if (!QFile::copy(filePath, destinationFilePath)) {
+                        qDebug() << "Failed to copy file:" << filePath << "to" << destinationFilePath;
+                    } else {
+                        copiedFilesCount++;
+                    }
+                    // Перемещаем файл в соответствующую папку
+                } else if (settings[1] == 1){
+                    QString destinationFilePath = destDir.filePath(fileName);
+                    if (!QFile::rename(filePath, destinationFilePath)) {
+                        qDebug() << "Failed to move file:" << filePath << "to" << destinationFilePath;
+                    } else {
+                        copiedFilesCount++;
+                    }
                 }
             }
-        }
-        if (settings[2] == 0){
-            // Копируем файл в соответствующую папку
-            if(settings[0] == 1){
-                QString destinationFilePath = destDir.filePath(fileName);
-                if (!QFile::copy(filePath, destinationFilePath)) {
-                    qDebug() << "Failed to copy file:" << filePath << "to" << destinationFilePath;
-                } else {
-                    copiedFilesCount++;
-                }
-                // Перемещаем файл в соответствующую папку
-            } else if (settings[1] == 1){
-                QString destinationFilePath = destDir.filePath(fileName);
-                if (!QFile::rename(filePath, destinationFilePath)) {
-                    qDebug() << "Failed to move file:" << filePath << "to" << destinationFilePath;
-                } else {
-                    copiedFilesCount++;
-                }
+            //Обновляем прогресс
+                    progressDialog.setValue(copiedFilesCount);
+
+            // Проверяем, была ли нажата кнопка отмены
+            if (progressDialog.wasCanceled()){
+                operationCanceled = true;
             }
         }
 
-        // Обновляем прогресс
-        progressDialog.setValue(copiedFilesCount);
+        // Проходим по каждому видео
+        foreach (const QString &fileName, fileVideoList) {
+            // Получаем полный путь к файлу
+            QString filePath = sourceVideoDir.filePath(fileName);
 
-        // Проверяем, была ли нажата кнопка отмены
-        if (progressDialog.wasCanceled()){
-            operationCanceled = true;
+            // Получаем информацию о файле
+            QFileInfo fileInfo(filePath);
+
+            // Получаем формат файла
+            QString format = fileInfo.suffix().toLower();
+            QDir destinationFormatDir = destDir;
+
+            // Если операция была отменена, выходим из цикла
+            if (operationCanceled) {
+                break;
+            }
+
+            // Если пользователь выбрал создавать папки
+            if (settings[2] == 1){
+                // Создаем папку для данного формата, если она еще не существует
+                if (!destinationFormatDir.exists("Video")) {
+                    if (!destinationFormatDir.mkdir("Video")) {
+                        qDebug() << "Failed to create directory Video :" << format;
+                        continue;
+                    }
+                }
+                QDir destinationPhotoFormatDir = model->filePath(ui->listView_right->rootIndex()) + "/Video";
+                // Создаем папку для данного формата, если она еще не существует
+                if (!destinationPhotoFormatDir.exists(format)) {
+                    if (!destinationPhotoFormatDir.mkdir(format)) {
+                        qDebug() << "Failed to create directory for format:" << format;
+                        continue;
+                    }
+                }
+                // Копируем файл в соответствующую папку
+                if(settings[0] == 1){
+                    QString destinationFilePath = destinationPhotoFormatDir.filePath(format + "/" + fileName);
+                    if (!QFile::copy(filePath, destinationFilePath)) {
+                        qDebug() << "Failed to copy file:" << filePath << "to" << destinationFilePath;
+                    } else {
+                        copiedFilesCount++;
+                    }
+                    // Перемещаем файл в соответствующую папку
+                } else if (settings[1] == 1){
+                    QString destinationFilePath = destinationPhotoFormatDir.filePath(format + "/" + fileName);
+                    if (!QFile::rename(filePath, destinationFilePath)) {
+                        qDebug() << "Failed to move file:" << filePath << "to" << destinationFilePath;
+                    } else {
+                        copiedFilesCount++;
+                    }
+                }
+            }
+            if (settings[2] == 0){
+                // Копируем файл в соответствующую папку
+                if(settings[0] == 1){
+                    QString destinationFilePath = destDir.filePath(fileName);
+                    if (!QFile::copy(filePath, destinationFilePath)) {
+                        qDebug() << "Failed to copy file:" << filePath << "to" << destinationFilePath;
+                    } else {
+                        copiedFilesCount++;
+                    }
+                    // Перемещаем файл в соответствующую папку
+                } else if (settings[1] == 1){
+                    QString destinationFilePath = destDir.filePath(fileName);
+                    if (!QFile::rename(filePath, destinationFilePath)) {
+                        qDebug() << "Failed to move file:" << filePath << "to" << destinationFilePath;
+                    } else {
+                        copiedFilesCount++;
+                    }
+                }
+            }
+            //Обновляем прогресс
+            progressDialog.setValue(copiedFilesCount);
+
+            // Проверяем, была ли нажата кнопка отмены
+            if (progressDialog.wasCanceled()){
+                operationCanceled = true;
+            }
         }
+
+        // Показываем сообщение о завершении операции
+        if (copiedFilesCount == filePhotoList.size() + fileVideoList.size() && !operationCanceled) {
+            if(settings[1] == 1) QMessageBox::information(this, "Moving Files", "All files moved successfully!");
+            if(settings[0] == 1) QMessageBox::information(this, "Copying Files", "All files copied successfully!");
+        } else {
+            if(settings[1] == 1) QMessageBox::warning(this, "Moving Files", "Moving operation was canceled or failed!");
+            if(settings[0] == 1) QMessageBox::warning(this, "Copying Files", "Copying operation was canceled or failed!");
+        }
+
+        qDebug() << "Organizing images completed.";
+        delete[] settings;
+
+    }
+    //Обработка фото или видео
+    else{
+        //Если sett[5] == 1, то фотки, если sett[5] == 2, то видео
+        QDir sourceDir = (settings[5] == 1) ? (model->filePath(ui->listView_left->rootIndex()) + "/DCIM/103MSDCF")
+                                            : ((settings[5] == 2)
+                                                   ? (model->filePath(ui->listView_left->rootIndex()) + "/PRIVATE/AVCHD/BDMV/STREAM")
+                                                   : (NULL));
+
+        QDir destDir = model->filePath(ui->listView_right->rootIndex());
+
+        // Получаем список файлов в исходной директории
+        QStringList fileList = sourceDir.entryList(QDir::Files);
+
+        QProgressDialog progressDialog("Doing things...", "Cancel", 0, fileList.size(), this);
+        progressDialog.setWindowModality(Qt::WindowModal);
+        if(settings[1] == 1) {
+            progressDialog.setWindowTitle("Moving Files");
+        }
+        else if(settings[0] == 1) progressDialog.setWindowTitle("Copying Files");
+
+
+        unsigned long copiedFilesCount = 0;
+        bool operationCanceled = false;
+
+        // Проходим по каждому файлу
+        foreach (const QString &fileName, fileList) {
+            // Получаем полный путь к файлу
+            QString filePath = sourceDir.filePath(fileName);
+
+            // Получаем информацию о файле
+            QFileInfo fileInfo(filePath);
+
+            // Получаем формат файла
+            QString format = fileInfo.suffix().toLower();
+            QDir destinationFormatDir(destDir);
+
+            // Если операция была отменена, выходим из цикла
+            if (operationCanceled) {
+                break;
+            }
+
+            // Если пользователь выбрал создавать папки
+            if (settings[2] == 1){
+                // Создаем папку для данного формата, если она еще не существует
+                if (!destinationFormatDir.exists(format)) {
+                    if (!destinationFormatDir.mkdir(format)) {
+                        qDebug() << "Failed to create directory for format:" << format;
+                        continue;
+                    }
+                }
+                // Копируем файл в соответствующую папку
+                if(settings[0] == 1){
+                    QString destinationFilePath = destinationFormatDir.filePath(format + "/" + fileName);
+                    if (!QFile::copy(filePath, destinationFilePath)) {
+                        qDebug() << "Failed to copy file:" << filePath << "to" << destinationFilePath;
+                    } else {
+                        copiedFilesCount++;
+                    }
+                    // Перемещаем файл в соответствующую папку
+                } else if (settings[1] == 1){
+                    QString destinationFilePath = destinationFormatDir.filePath(format + "/" + fileName);
+                    if (!QFile::rename(filePath, destinationFilePath)) {
+                        qDebug() << "Failed to move file:" << filePath << "to" << destinationFilePath;
+                    } else {
+                        copiedFilesCount++;
+                    }
+                }
+            }
+            if (settings[2] == 0){
+                // Копируем файл в соответствующую папку
+                if(settings[0] == 1){
+                    QString destinationFilePath = destDir.filePath(fileName);
+                    if (!QFile::copy(filePath, destinationFilePath)) {
+                        qDebug() << "Failed to copy file:" << filePath << "to" << destinationFilePath;
+                    } else {
+                        copiedFilesCount++;
+                    }
+                    // Перемещаем файл в соответствующую папку
+                } else if (settings[1] == 1){
+                    QString destinationFilePath = destDir.filePath(fileName);
+                    if (!QFile::rename(filePath, destinationFilePath)) {
+                        qDebug() << "Failed to move file:" << filePath << "to" << destinationFilePath;
+                    } else {
+                        copiedFilesCount++;
+                    }
+                }
+            }
+
+            // Обновляем прогресс
+            progressDialog.setValue(copiedFilesCount);
+
+            // Проверяем, была ли нажата кнопка отмены
+            if (progressDialog.wasCanceled()){
+                operationCanceled = true;
+            }
+        }
+
+        // Показываем сообщение о завершении операции
+        if (copiedFilesCount == fileList.size() && !operationCanceled) {
+            if(settings[1] == 1) QMessageBox::information(this, "Moving Files", "All files moved successfully!");
+            if(settings[0] == 1) QMessageBox::information(this, "Copying Files", "All files copied successfully!");
+        } else {
+            if(settings[1] == 1) QMessageBox::warning(this, "Moving Files", "Moving operation was canceled or failed!");
+            if(settings[0] == 1) QMessageBox::warning(this, "Copying Files", "Copying operation was canceled or failed!");
+        }
+
+        qDebug() << "Organizing images completed.";
+        delete[] settings;
+
     }
 
-    // Показываем сообщение о завершении операции
-    if (copiedFilesCount == fileList.size() && !operationCanceled) {
-        QMessageBox::information(this, "Copying Files", "All files copied successfully!");
-    } else {
-        QMessageBox::warning(this, "Copying Files", "Copying operation was canceled or failed!");
-    }
-
-    qDebug() << "Organizing images completed.";
-    delete[] settings;
 }
 
 //Жонглирование путями
@@ -1312,7 +1583,8 @@ void MainWindow::on_icon_view_right_clicked()
 //Меню ПКМ
 void MainWindow::contextMenuEvent(QContextMenuEvent *event)
 {
-    // Получаем модель выбора из listView'ов
+
+    // Остальной код обработки контекстного меню
     QItemSelectionModel* selectionModel = getModelFromFocusedListView();
 
     QMenu menu(this); // Создаем объект контекстного меню
@@ -1393,31 +1665,70 @@ void MainWindow::contextMenuEvent(QContextMenuEvent *event)
     }
     else if(selectedAction == listView){
         //Вид как список
-        if (listViewFocus == -1) on_list_view_left_clicked();
-        if (listViewFocus == 1) on_list_view_right_clicked();
+        if (listViewFocus == -1) {
+            on_list_view_left_clicked();
+            ui->listView_left->setIconSize(QSize(15, 15));
+            ui->listView_left->setResizeMode(QListView::Adjust);
+        }
+        if (listViewFocus == 1) {
+            on_list_view_right_clicked();
+            ui->listView_right->setIconSize(QSize(15, 15));
+            ui->listView_right->setResizeMode(QListView::Adjust);
+        }
     }
     else if(selectedAction == iconView_EXL){
         //Вид как очень большие иконки
-        if (listViewFocus == -1) on_icon_view_left_clicked();
-        if (listViewFocus == 1) on_icon_view_right_clicked();
-
+        if (listViewFocus == -1) {
+            on_icon_view_left_clicked();
+            ui->listView_left->setIconSize(QSize(70, 70));
+            ui->listView_left->setResizeMode(QListView::Adjust);
+        }
+        if (listViewFocus == 1) {
+            on_icon_view_right_clicked();
+            ui->listView_right->setIconSize(QSize(70, 70));
+            ui->listView_right->setResizeMode(QListView::Adjust);
+        }
     }
     else if(selectedAction == iconView_L){
         //Вид как большие иконки
-        if (listViewFocus == -1) on_icon_view_left_clicked();
-        if (listViewFocus == 1) on_icon_view_right_clicked();
+        if (listViewFocus == -1) {
+            on_icon_view_left_clicked();
+            ui->listView_left->setIconSize(QSize(50, 50));
+            ui->listView_left->setResizeMode(QListView::Adjust);
+        }
+        if (listViewFocus == 1) {
+            on_icon_view_right_clicked();
+            ui->listView_right->setIconSize(QSize(50, 50));
+            ui->listView_right->setResizeMode(QListView::Adjust);
+        }
 
     }
     else if(selectedAction == iconView_M){
         //Вид как средние иконки
-        if (listViewFocus == -1) on_icon_view_left_clicked();
-        if (listViewFocus == 1) on_icon_view_right_clicked();
+        if (listViewFocus == -1) {
+            on_icon_view_left_clicked();
+            ui->listView_left->setIconSize(QSize(30, 30));
+            ui->listView_left->setResizeMode(QListView::Adjust);
+        }
+        if (listViewFocus == 1) {
+            on_icon_view_right_clicked();
+            ui->listView_right->setIconSize(QSize(30, 30));
+            ui->listView_right->setResizeMode(QListView::Adjust);
+        }
 
     }
     else if(selectedAction == iconView_S){
         //Вид как маленькие иконки
-        if (listViewFocus == -1) on_icon_view_left_clicked();
-        if (listViewFocus == 1) on_icon_view_right_clicked();
+        if (listViewFocus == -1) {
+            on_icon_view_left_clicked();
+            ui->listView_left->setIconSize(QSize(20, 20));
+            ui->listView_left->setResizeMode(QListView::Adjust);
+        }
+        if (listViewFocus == 1) {
+            on_icon_view_right_clicked();
+        ui->listView_right->setIconSize(QSize(20, 20));
+        ui->listView_right->setResizeMode(QListView::Adjust);
+        }
 
     }
     else if(selectedAction == refresh){
@@ -1461,19 +1772,11 @@ void MainWindow::contextMenuEvent(QContextMenuEvent *event)
     }
 }
 
-/*
+
 void MainWindow::on_actionSD_actions_triggered()
 {
-    SD_settings sd_settings_left(this);
-    connect(&sd_settings_left, &SD_settings::sendSDActionsData, this, &MainWindow::receiveSDActionsData);
-
-
-    sd_settings_left.exec();
-
-
-
+    on_sd_actions_left_clicked();
 }
-*/
 
 bool createDir = true;
 
@@ -1549,7 +1852,7 @@ void MainWindow::on_new_name_returnPressed()
 }
 
 
-void MainWindow::on_comboBox_Lhistory_currentIndexChanged(int index)
-{
 
-}
+
+
+

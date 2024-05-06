@@ -101,7 +101,7 @@ private slots:
 
     void on_icon_view_right_clicked();
 
-    //void on_actionSD_actions_triggered();
+    void on_actionSD_actions_triggered();
 
     void new_dir();
 
@@ -116,6 +116,8 @@ private slots:
     void on_forward_left_clicked();
 
     void on_forward_right_clicked();
+
+    void on_comboBox_Rhistory_currentIndexChanged(int index);
 
 public slots:
     void receiveSDActionsData(int *settins);
@@ -132,6 +134,7 @@ private:
     QShortcut *keyCtrl_Up;    // Ctrl + +
     QShortcut *keyCtrl_Down;  // Ctrl + -
     QShortcut *keyCtrl_Eq;    // Ctrl + =
+    //QShortcut *;
 
     long long Lhindex = 0;
     long long Rhindex = 0;

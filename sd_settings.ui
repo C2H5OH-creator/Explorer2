@@ -27,44 +27,21 @@
    <item row="1" column="0">
     <layout class="QGridLayout" name="gridLayout">
      <item row="3" column="1">
-      <widget class="QRadioButton" name="Move_type">
+      <widget class="QRadioButton" name="Copy_type">
        <property name="text">
-        <string>Move (пока только для фото)</string>
+        <string>Copy</string>
        </property>
        <attribute name="buttonGroup">
         <string notr="true">buttonGroup</string>
        </attribute>
       </widget>
      </item>
-     <item row="4" column="1">
-      <widget class="QCheckBox" name="folder_settings">
-       <property name="text">
-        <string>Отсортировать файлы по форматам в папки</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QLineEdit" name="from_path"/>
-     </item>
-     <item row="5" column="1">
+     <item row="6" column="1">
       <widget class="QCheckBox" name="Raw_to_JPEG">
        <property name="text">
         <string>Конвертировать RAW в JPEG при переносе</string>
        </property>
       </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QRadioButton" name="Copy_type">
-       <property name="text">
-        <string>Copy (пока только для фото)</string>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup</string>
-       </attribute>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QLineEdit" name="to_path"/>
      </item>
      <item row="1" column="0">
       <widget class="QLabel" name="to">
@@ -79,10 +56,20 @@
        </property>
       </widget>
      </item>
-     <item row="6" column="1">
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="from_path"/>
+     </item>
+     <item row="7" column="1">
       <widget class="QCheckBox" name="MTS_to_MP4">
        <property name="text">
         <string>Конвертировать MTS в MP4 при переносе</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QCheckBox" name="folder_settings">
+       <property name="text">
+        <string>Отсортировать файлы по форматам и категирия в папки</string>
        </property>
       </widget>
      </item>
@@ -90,6 +77,45 @@
       <widget class="QLabel" name="from">
        <property name="text">
         <string>From</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QRadioButton" name="Move_type">
+       <property name="text">
+        <string>Move</string>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup</string>
+       </attribute>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="to_path"/>
+     </item>
+     <item row="2" column="1">
+      <widget class="QComboBox" name="files">
+       <item>
+        <property name="text">
+         <string>Photo &amp;&amp; Video</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Only photo</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Only video</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Files</string>
        </property>
       </widget>
      </item>

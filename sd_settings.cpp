@@ -17,12 +17,13 @@ SD_settings::~SD_settings()
 
 void SD_settings::on_buttonBox_accepted()
 {
-    int *settings = new int[5];
+    int *settings = new int[6];
     settings[0] = 0;
     settings[1] = 0;
     settings[2] = 0;
     settings[3] = 0;
     settings[4] = 0;
+    settings[5] = -1;
 
     /*
         settings[0] - Copy_type
@@ -30,8 +31,18 @@ void SD_settings::on_buttonBox_accepted()
         settings[2] - folder_settings
         settings[3] - Raw_to_JPEG
         settings[4] - MTS_to_MP4
+        settings[5] - 0 - Photo && video || 1 - Only photo || 2 - Only video
 
     */
+    if (ui->files->currentIndex() == 0){
+        settings[5] = 0;
+    }
+    if (ui->files->currentIndex() == 1){
+        settings[5] = 1;
+    }
+    if (ui->files->currentIndex() == 2){
+        settings[5] = 2;
+    }
     if(ui->Copy_type->isChecked()){
         settings[0] = 1;
     }
