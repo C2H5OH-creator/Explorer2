@@ -11,11 +11,13 @@ CONFIG += c++17
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
+    myqfilesystemmodel.cpp \
     sd_settings.cpp
 
 HEADERS += \
     list.h \
     mainwindow.h \
+    myqfilesystemmodel.h \
     sd_settings.h
 
 FORMS += \

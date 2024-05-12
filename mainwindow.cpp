@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "list.h"
+#include "myqfilesystemmodel.h"
+
 
 #include <QApplication>
 #include <QWidget>
@@ -28,16 +30,24 @@
 #include <QImage>
 #include <QBuffer>
 
+int view = 0;
+
+int iconDefHieght = 20;
+int iconDefWidth = 20;
+
+int iconHieght = iconDefHieght + view;
+int iconWidth = iconDefWidth + view;
+
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    model = new QFileSystemModel(this);
+    model = new MyQFileSystemModel(this,iconWidth,iconHieght);
     model->setRootPath("");
     ui->rename_enter->hide();
     ui->new_name->hide();
-
 
     //Left
     ui->listView_left->setModel(model);
@@ -92,7 +102,8 @@ MainWindow::~MainWindow()
 List left_history = List();
 List right_history = List();
 
-int view = 0;
+
+
 int listViewFocus = 0; // -1 left / +1 right
 
 //Сохранение последнего фокуса
@@ -108,13 +119,6 @@ void MainWindow::properFocus()
     }
 }
 
-//Стандартные свойства
-void openFileProperties(const QString& filePath) {
-    LPCWSTR filePathW = reinterpret_cast<LPCWSTR>(filePath.utf16()); // Преобразуем путь к файлу в LPCWSTR
-    ShellExecute(NULL, L"properties", filePathW, NULL, NULL, SW_SHOWNORMAL);
-}
-
-
 //Сохранение модели относительно последнего фокуса
 QItemSelectionModel* MainWindow::getModelFromFocusedListView() {
     if (listViewFocus == -1) {
@@ -128,14 +132,18 @@ QItemSelectionModel* MainWindow::getModelFromFocusedListView() {
 
 //Обработка изменение мастшаба
 void MainWindow::viewStop(int &view){
+    qDebug() << view;
+    qDebug() << iconHieght;
+    qDebug() << iconWidth;
+
     if(view > 0){
         if (ui->listView_left->hasFocus()) {
             ui->listView_left->setViewMode(QListView::IconMode);
-            ui->listView_left->setIconSize(QSize(20, 20));
+            ui->listView_left->setIconSize(QSize(iconDefHieght, iconDefWidth));
             ui->listView_left->setResizeMode(QListView::Adjust);
         }else if (ui->listView_right->hasFocus()){
             ui->listView_right->setViewMode(QListView::IconMode);
-            ui->listView_right->setIconSize(QSize(20, 20));
+            ui->listView_right->setIconSize(QSize(iconDefHieght, iconDefWidth));
             ui->listView_right->setResizeMode(QListView::Adjust);
         }
     }else{
@@ -149,76 +157,98 @@ void MainWindow::viewStop(int &view){
 
 //Обработка CRTL +
 void MainWindow::slotShortcutCtrl_Up(){
+
+
+
     viewStop(view);
     if (view >= 50) view = 50;
     if (view < 0) view = 0;
+
+    iconHieght = iconDefHieght + view; // Обновляем значение iconHieght
+    iconWidth = iconDefWidth + view;   // Обновляем значение iconWidth
+
     if (ui->listView_left->hasFocus()) {
         view += 5;
-        ui->listView_left->setIconSize(QSize(20 + view, 20 + view));
+        ui->listView_left->setIconSize(QSize(iconHieght, iconWidth));
     }else if (ui->listView_right->hasFocus()){
         view += 5;
-        ui->listView_right->setIconSize(QSize(20 + view, 20 + view));
+        ui->listView_right->setIconSize(QSize(iconHieght, iconWidth));
     }
 }
 
 //Обработка CRTL =
 void MainWindow::slotShortcutCtrl_Eq(){
     viewStop(view);
+
     if (view >= 50) view = 50;
     if (view < 0) view = 0;
+
+    iconHieght = iconDefHieght + view; // Обновляем значение iconHieght
+    iconWidth = iconDefWidth + view;   // Обновляем значение iconWidth
+
     if (ui->listView_left->hasFocus()) {
         view += 5;
-        ui->listView_left->setIconSize(QSize(20 + view, 20 + view));
+        ui->listView_left->setIconSize(QSize(iconHieght, iconWidth));
     }else if (ui->listView_right->hasFocus()){
         view += 5;
-        ui->listView_right->setIconSize(QSize(20 + view, 20 + view));
+        ui->listView_right->setIconSize(QSize(iconHieght, iconWidth));
     }
 }
 
 //Обработка CRTL -
 void MainWindow::slotShortcutCtrl_Down(){
     viewStop(view);
+
     if (view >= 50) view = 50;
     if (view < 0) view = 0;
+
+    iconHieght = iconDefHieght + view; // Обновляем значение iconHieght
+    iconWidth = iconDefWidth + view;   // Обновляем значение iconWidth
+
     if (ui->listView_left->hasFocus()) {
         view -= 5;
-        ui->listView_left->setIconSize(QSize(20 + view, 20 + view));
+        ui->listView_left->setIconSize(QSize(iconHieght, iconWidth));
     }else if (ui->listView_right->hasFocus()){
         view -= 5;
-        ui->listView_right->setIconSize(QSize(20 + view, 20 + view));
+        ui->listView_right->setIconSize(QSize(iconHieght, iconWidth));
     }
 }
 
 //Обработка CRTL + колёсико мыши
 void MainWindow::wheelEvent(QWheelEvent *event) {
+
     viewStop(view);
+
+    iconHieght = iconDefHieght + view; // Обновляем значение iconHieght
+    iconWidth = iconDefWidth + view;   // Обновляем значение iconWidth
+
 
     // Проверяем, нажата ли клавиша Ctrl
     if (event->modifiers() & Qt::CTRL) {
         // Получаем значение вращения колесика мыши (вертикальное)
         int delta = event->angleDelta().y();
 
-       // Колесико вращается вверх
+        // Колесико вращается вверх
         if (delta > 0) {
             if (view >= 50) view = 50;
             if (view < 0) view = 0;
             if (ui->listView_left->hasFocus()) {
                 view += 5;
-                ui->listView_left->setIconSize(QSize(20 + view, 20 + view));
+                ui->listView_left->setIconSize(QSize(iconHieght, iconWidth));
             }else if (ui->listView_right->hasFocus()){
                 view += 5;
-                ui->listView_right->setIconSize(QSize(20 + view, 20 + view));
+                ui->listView_right->setIconSize(QSize(iconHieght, iconWidth));
             }
-         // Колесико вращается вниз
+            // Колесико вращается вниз
         } else if (delta < 0) {
             if (view >= 50) view = 50;
             if (view < 0) view = 0;
             if (ui->listView_left->hasFocus()) {
                 view -= 5;
-                ui->listView_left->setIconSize(QSize(20 + view, 20 + view));
+                ui->listView_left->setIconSize(QSize(iconHieght, iconWidth));
             }else if (ui->listView_right->hasFocus()){
                 view -= 5;
-                ui->listView_right->setIconSize(QSize(20 + view, 20 + view));
+                ui->listView_right->setIconSize(QSize(iconHieght, iconWidth));
             }
         }
         // Помечаем событие как обработанное, чтобы оно не передавалось дальше
@@ -1214,7 +1244,7 @@ void MainWindow::receiveSDActionsData(int *settings)
                 }
             }
             //Обновляем прогресс
-                    progressDialog.setValue(copiedFilesCount);
+            progressDialog.setValue(copiedFilesCount);
 
             // Проверяем, была ли нажата кнопка отмены
             if (progressDialog.wasCanceled()){
@@ -1563,6 +1593,7 @@ void MainWindow::on_icon_view_left_clicked()
     ui->listView_left->setUniformItemSizes(true);
     ui->listView_left->setWordWrap(true);
     ui->listView_left->setViewMode(QListView::IconMode);
+    refreshIcons();
 }
 
 //Вид списка справа
@@ -1578,6 +1609,7 @@ void MainWindow::on_icon_view_right_clicked()
     ui->listView_right->setUniformItemSizes(true);
     ui->listView_right->setWordWrap(true);
     ui->listView_right->setViewMode(QListView::IconMode);
+    refreshIcons();
 }
 
 //Меню ПКМ
@@ -1726,8 +1758,8 @@ void MainWindow::contextMenuEvent(QContextMenuEvent *event)
         }
         if (listViewFocus == 1) {
             on_icon_view_right_clicked();
-        ui->listView_right->setIconSize(QSize(20, 20));
-        ui->listView_right->setResizeMode(QListView::Adjust);
+            ui->listView_right->setIconSize(QSize(20, 20));
+            ui->listView_right->setResizeMode(QListView::Adjust);
         }
 
     }
@@ -1761,7 +1793,7 @@ void MainWindow::contextMenuEvent(QContextMenuEvent *event)
         foreach (const QModelIndex &index, selectedIndexes) {
             QFileInfo fileInfo = model->fileInfo(index);
             if (fileInfo.isFile()) { // Проверяем, что это файл, а не папка
-                openFileProperties(fileInfo.absoluteFilePath());
+                //openFileProperties(fileInfo.absoluteFilePath());
                 break;
             }
         }
@@ -1851,8 +1883,47 @@ void MainWindow::on_new_name_returnPressed()
     }
 }
 
+QImage scaleImage(const QImage &originalImage, const QSize &targetSize) {
+    return originalImage.scaled(targetSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+}
 
+void MainWindow::refreshIcons(){
+    // Получаем модель выбора из listView'ов
+    //QItemSelectionModel* selectionModel = getModelFromFocusedListView();
+    QItemSelectionModel* selectionModel = ui->listView_left->selectionModel();
+    if (!selectionModel)
+        return;
 
+    // Получаем связанную с QListView модель
+    QListView* listView = qobject_cast<QListView*>(selectionModel->parent());
+    if (!listView)
+        return;
 
+    QFileSystemModel* model = qobject_cast<QFileSystemModel*>(listView->model());
+    if (!model)
+        return;
 
+    // Получаем корневой индекс текущей отображаемой папки
+    QModelIndex rootIndex = listView->rootIndex();
+
+    // Получаем список файлов в текущей отображаемой папке
+    int rowCount = model->rowCount(rootIndex);
+    for (int row = 0; row < rowCount; ++row) {
+        QModelIndex index = model->index(row, 0, rootIndex); // Получаем индекс текущего файла в текущей папке
+        QFileInfo fileInfo = model->fileInfo(index);
+        QImage temp(fileInfo.absoluteFilePath());
+        if (fileInfo.isFile()) {
+            QSize size(iconHieght, iconWidth);
+            QPixmap scaledPixmap = QPixmap::fromImage(temp.scaled(size, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            QIcon newIcon(scaledPixmap);
+            // Устанавливаем новую иконку для файла
+            //qDebug() << model->setData(index, newIcon, Qt::DecorationRole);
+            //model->setData(index, newIcon, Qt::DecorationRole);
+            //qDebug() << deb++;
+            //qDebug() << fileInfo.absoluteFilePath();
+        }
+    }
+    ui->listView_left->update();
+    ui->listView_right->update();
+}
 

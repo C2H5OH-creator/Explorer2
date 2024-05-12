@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include "sd_settings.h"
+#include "icondelegate.h"
 
 #include <QApplication>
 #include <QWidget>
@@ -11,7 +12,9 @@
 #include <QFileSystemModel>
 #include <QMainWindow>
 #include <QKeyEvent>
-#include "list.h"
+//#include "list.h"
+#include <QDir>
+#include <QModelIndex>
 
 
 
@@ -28,6 +31,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+
 
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
@@ -119,6 +123,8 @@ private slots:
 
     void on_comboBox_Rhistory_currentIndexChanged(int index);
 
+    void refreshIcons();
+
 public slots:
     void receiveSDActionsData(int *settins);
     //void receiveRightData(int *settins);
@@ -135,6 +141,7 @@ private:
     QShortcut *keyCtrl_Down;  // Ctrl + -
     QShortcut *keyCtrl_Eq;    // Ctrl + =
     //QShortcut *;
+    QFileInfoList *aDirList;
 
     long long Lhindex = 0;
     long long Rhindex = 0;
