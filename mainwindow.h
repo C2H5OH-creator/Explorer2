@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include "sd_settings.h"
-#include "icondelegate.h"
+#include "myqfilesystemmodel.h"
 
 #include <QApplication>
 #include <QWidget>
@@ -127,24 +127,24 @@ private slots:
 
 public slots:
     void receiveSDActionsData(int *settins);
-    //void receiveRightData(int *settins);
 
 signals:
     void sendToPath(QString path);
     void sendFromPath(QString path);
+    void sendToModel(int *arr);
 
 private:
     Ui::MainWindow *ui;
-    QFileSystemModel* model;
+    MyQFileSystemModel *model;
     QString visited;
     QShortcut *keyCtrl_Up;    // Ctrl + +
     QShortcut *keyCtrl_Down;  // Ctrl + -
     QShortcut *keyCtrl_Eq;    // Ctrl + =
-    //QShortcut *;
     QFileInfoList *aDirList;
 
     long long Lhindex = 0;
     long long Rhindex = 0;
+
 
 };
 #endif // MAINWINDOW_H

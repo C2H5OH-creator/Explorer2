@@ -4,21 +4,57 @@
 #include <QImageReader>
 #include <QPixmap>
 #include <QIcon>
+#include <QMap>
+#include <QMimeData>
 
-MyQFileSystemModel::MyQFileSystemModel(QObject *parent, int iconWidth, int iconHeight)
-    : QFileSystemModel(parent), m_iconWidth(iconWidth), m_iconHeight(iconHeight)
+MyQFileSystemModel::MyQFileSystemModel(QObject *parent)
+    : QFileSystemModel(parent)
 {
 }
+
 int coefficient = 200;
+
+int count = 0;
+
+int l_viewType = 0; // 0 = List | 1 = Icon
+
+int l_iconHeight = 20;
+int l_iconWidth = 20;
+
+void MyQFileSystemModel::receiveToModel(int *arr){
+
+    l_viewType = arr[0];
+    l_iconHeight = arr[1];
+    l_iconWidth = arr[2];
+
+    qDebug() << count++ << arr[0];
+    qDebug() << arr[1] << arr[2];
+    delete[] arr;
+
+}
+
+QMimeData *MyQFileSystemModel::mimeData(const QModelIndexList &indexes) const
+{
+    // Disable drag-and-drop by returning an empty QMimeData object
+    return new QMimeData;
+}
 
 QVariant MyQFileSystemModel::data(const QModelIndex &index, int role) const
 {
 
-    // Проверяем роль и тип элемента
-    if (role == Qt::DecorationRole && index.isValid()) {
-        QString filePath = this->filePath(index);
-        QFileInfo fileInfo(filePath);
+    //qDebug() << count++ << l_viewType;
+    //qDebug() << l_iconHeight << l_iconWidth;
 
+    // Проверяем роль и тип элемента
+    if (role == Qt::DecorationRole && index.isValid() && l_viewType == 1) {
+        QString filePath = this->filePath(index);
+
+        // Проверяем, есть ли уже миниатюра для этого файла в кэше
+        if (thumbnailCache.contains(filePath)) {
+            return thumbnailCache.value(filePath).icon;
+        }
+
+        QFileInfo fileInfo(filePath);
         // Проверяем, является ли файл изображением
         if (fileInfo.isFile() && QImageReader::supportedImageFormats().contains(fileInfo.suffix().toLower().toUtf8())) {
             // Загружаем изображение
@@ -26,15 +62,19 @@ QVariant MyQFileSystemModel::data(const QModelIndex &index, int role) const
 
             // Если изображение не пустое, создаем миниатюру
             if (!image.isNull()) {
-                QSize iconSize(m_iconHeight + coefficient, m_iconWidth + coefficient); // Размер миниатюры
-                //QPixmap thumbnail = QPixmap::fromImage(image.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+                QSize iconSize(l_iconHeight + coefficient, l_iconWidth + coefficient); // Размер миниатюры
                 QPixmap thumbnail = QPixmap::fromImage(image.scaled(iconSize, Qt::KeepAspectRatio, Qt::FastTransformation));
                 QIcon icon(thumbnail);
+
+                // Сохраняем миниатюру в кэше
+                ThumbnailInfo thumbnailInfo;
+                thumbnailInfo.icon = icon;
+                thumbnailInfo.filePath = filePath;
+                (*mutableThumbnailCache).insert(filePath, thumbnailInfo);
                 return icon;
             }
         }
     }
-
-    // Если это не изображение или что-то пошло не так, используем стандартное поведение
-    return QFileSystemModel::data(index, role);
+        // Если это не изображение или что-то пошло не так, используем стандартное поведение
+        return QFileSystemModel::data(index, role);
 }

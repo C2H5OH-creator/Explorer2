@@ -31,6 +31,7 @@
 #include <QBuffer>
 
 int view = 0;
+int viewType = 0; // 0 = List | 1 = Icon
 
 int iconDefHieght = 20;
 int iconDefWidth = 20;
@@ -38,13 +39,13 @@ int iconDefWidth = 20;
 int iconHieght = iconDefHieght + view;
 int iconWidth = iconDefWidth + view;
 
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    model = new MyQFileSystemModel(this,iconWidth,iconHieght);
+    model = new MyQFileSystemModel(this);
+    connect(this, &MainWindow::sendToModel, model, &MyQFileSystemModel::receiveToModel);
     model->setRootPath("");
     ui->rename_enter->hide();
     ui->new_name->hide();
@@ -55,6 +56,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->left_path->setPlaceholderText("");
     ui->left_path->setReadOnly(true);
     ui->left_path->hide();
+    ui->listView_left->viewport()->setAcceptDrops(false);
 
     //Right
     ui->listView_right->setModel(model);
@@ -62,6 +64,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->right_path->setPlaceholderText("");
     ui->right_path->setReadOnly(true);
     ui->right_path->hide();
+    ui->listView_right->viewport()->setAcceptDrops(false);
 
     //HotKeys
 
@@ -87,11 +90,6 @@ MainWindow::MainWindow(QWidget *parent)
     // шорткат perm_delete
     QShortcut *perm_del = new QShortcut(QKeySequence(Qt::SHIFT | Qt::Key_Delete), this);
     connect(perm_del, &QShortcut::activated, this, &MainWindow::on_permanent_del_clicked);
-
-    // шорткат delete
-    //QShortcut *bin_del = new QShortcut(QKeySequence(Qt::Key_Delete), this);
-    //connect(bin_del, &QShortcut::activated, this, &MainWindow::on_delete_2_clicked);
-
 }
 
 MainWindow::~MainWindow()
@@ -101,8 +99,6 @@ MainWindow::~MainWindow()
 
 List left_history = List();
 List right_history = List();
-
-
 
 int listViewFocus = 0; // -1 left / +1 right
 
@@ -132,11 +128,22 @@ QItemSelectionModel* MainWindow::getModelFromFocusedListView() {
 
 //Обработка изменение мастшаба
 void MainWindow::viewStop(int &view){
-    qDebug() << view;
-    qDebug() << iconHieght;
-    qDebug() << iconWidth;
+    //qDebug() << viewType;
+    //qDebug() << view;
+    //qDebug() << iconHieght;
+    //qDebug() << iconWidth;
+
+    int *set_arr = new int[3];
+
+    set_arr[0] = viewType;
+    set_arr[1] = iconHieght;
+    set_arr[2] = iconWidth;
+
+    emit sendToModel(set_arr);
+
 
     if(view > 0){
+        viewType = 1;
         if (ui->listView_left->hasFocus()) {
             ui->listView_left->setViewMode(QListView::IconMode);
             ui->listView_left->setIconSize(QSize(iconDefHieght, iconDefWidth));
@@ -147,6 +154,7 @@ void MainWindow::viewStop(int &view){
             ui->listView_right->setResizeMode(QListView::Adjust);
         }
     }else{
+        viewType = 0;
         if (ui->listView_left->hasFocus()) {
             ui->listView_left->setViewMode(QListView::ListMode);
         }else if (ui->listView_right->hasFocus()){
@@ -157,11 +165,8 @@ void MainWindow::viewStop(int &view){
 
 //Обработка CRTL +
 void MainWindow::slotShortcutCtrl_Up(){
-
-
-
     viewStop(view);
-    if (view >= 50) view = 50;
+    if (view >= 80) view = 80;
     if (view < 0) view = 0;
 
     iconHieght = iconDefHieght + view; // Обновляем значение iconHieght
@@ -180,7 +185,7 @@ void MainWindow::slotShortcutCtrl_Up(){
 void MainWindow::slotShortcutCtrl_Eq(){
     viewStop(view);
 
-    if (view >= 50) view = 50;
+    if (view >= 80) view = 80;
     if (view < 0) view = 0;
 
     iconHieght = iconDefHieght + view; // Обновляем значение iconHieght
@@ -199,7 +204,7 @@ void MainWindow::slotShortcutCtrl_Eq(){
 void MainWindow::slotShortcutCtrl_Down(){
     viewStop(view);
 
-    if (view >= 50) view = 50;
+     if (view >= 80) view = 80;
     if (view < 0) view = 0;
 
     iconHieght = iconDefHieght + view; // Обновляем значение iconHieght
@@ -230,7 +235,7 @@ void MainWindow::wheelEvent(QWheelEvent *event) {
 
         // Колесико вращается вверх
         if (delta > 0) {
-            if (view >= 50) view = 50;
+             if (view >= 80) view = 80;
             if (view < 0) view = 0;
             if (ui->listView_left->hasFocus()) {
                 view += 5;
@@ -241,7 +246,7 @@ void MainWindow::wheelEvent(QWheelEvent *event) {
             }
             // Колесико вращается вниз
         } else if (delta < 0) {
-            if (view >= 50) view = 50;
+             if (view >= 80) view = 80;
             if (view < 0) view = 0;
             if (ui->listView_left->hasFocus()) {
                 view -= 5;
@@ -1103,7 +1108,7 @@ void MainWindow::on_sd_actions_left_clicked()
 
     SD_settings sd_settings(this);
     connect(&sd_settings, &SD_settings::sendSDActionsData, this, &MainWindow::receiveSDActionsData);
-    connect(this, &MainWindow::sendToPath, &sd_settings, &SD_settings::receiveToPath);
+
     connect(this, &MainWindow::sendFromPath, &sd_settings, &SD_settings::receiveFromPath);
 
     emit sendToPath(ui->right_path->text());
@@ -1583,6 +1588,7 @@ void MainWindow::on_listView_right_clicked(const QModelIndex &index)
 //Вид списка слева
 void MainWindow::on_list_view_left_clicked()
 {
+    viewType = 0;
     ui->listView_left->setUniformItemSizes(false);
     ui->listView_left->setViewMode(QListView::ListMode);
 }
@@ -1590,6 +1596,7 @@ void MainWindow::on_list_view_left_clicked()
 
 void MainWindow::on_icon_view_left_clicked()
 {
+    viewType = 1;
     ui->listView_left->setUniformItemSizes(true);
     ui->listView_left->setWordWrap(true);
     ui->listView_left->setViewMode(QListView::IconMode);
