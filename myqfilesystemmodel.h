@@ -15,7 +15,6 @@ class MyQFileSystemModel : public QFileSystemModel
 
 public:
     MyQFileSystemModel(QObject *parent = nullptr);
-    //Qt::DropActions supportedDragActions(const QModelIndexList &indexes) const;
     QVariant data(const QModelIndex &index, int role) const override;
     QMimeData *mimeData(const QModelIndexList &indexes) const override;
 

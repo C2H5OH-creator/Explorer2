@@ -15,6 +15,7 @@ SD_settings::~SD_settings()
     delete ui;
 }
 
+//Просто отправка данных из окошка SD actions
 void SD_settings::on_buttonBox_accepted()
 {
     int *settings = new int[6];

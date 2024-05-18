@@ -3,7 +3,6 @@
 #include "list.h"
 #include "myqfilesystemmodel.h"
 
-
 #include <QApplication>
 #include <QWidget>
 #include <QHBoxLayout>
@@ -264,7 +263,7 @@ void MainWindow::wheelEvent(QWheelEvent *event) {
     }
 }
 
-//Установка пути в сточку
+//Установка пути в сточку (виджет старого отображения пути, оставлен как очень удобный костыль :D )
 void MainWindow::setPathView(int type, QString path){
 
     switch(type){
@@ -289,15 +288,9 @@ void MainWindow::on_actionOpen_folder_triggered() {
     if (!directoryPath.isEmpty()) {
         //Устанавливаем в модель нужный нам путь
         model->setRootPath(directoryPath);
-        // Set the root index to display the directory contents
         QModelIndex rootIndex = model->index(directoryPath);
         ui->listView_left->setRootIndex(rootIndex);
     }
-}
-
-bool isImage(const QString &filePath) {
-    QImageReader imageReader(filePath);
-    return imageReader.canRead(); // Возвращает true, если файл является изображением
 }
 
 //Открытие папки/файла слева
@@ -318,11 +311,9 @@ void MainWindow::on_listView_left_doubleClicked(const QModelIndex &index)
         setPathView(0, model->filePath(index));
     }
     else if (QFileInfo(fileInfo.path()).exists()) {
-        // Open the file using the default application
         QDesktopServices::openUrl(QUrl::fromLocalFile(fileInfo.absoluteFilePath()));
     }
     else {
-        // Handle the case where the file doesn't exist
         qDebug() << "File not found: " << fileInfo.path();
     }
 }
@@ -337,8 +328,6 @@ void MainWindow::on_back_left_clicked()
     //Обновление пути
     setPathView(0, parentPath);
 
-
-    // Check if the parent path is the root directory
     if (parentPath == "") {
         ui->listView_left->setRootIndex(model->index(""));
     }
@@ -397,9 +386,7 @@ void MainWindow::on_forward_left_clicked()
     ui->comboBox_Lhistory->setCurrentText(left_history.get(Lhindex));
     ui->listView_left->setRootIndex(model->index(dir.absolutePath()));
     ui->left_path->setText(dir.absolutePath());
-
 }
-
 
 //Открытие папки/файла справа
 void MainWindow::on_listView_right_doubleClicked(const QModelIndex &index)
@@ -421,11 +408,9 @@ void MainWindow::on_listView_right_doubleClicked(const QModelIndex &index)
         setPathView(1, model->filePath(index));
     }
     else if (QFileInfo(fileInfo.path()).exists()) {
-        // Open the file using the default application
         QDesktopServices::openUrl(QUrl::fromLocalFile(fileInfo.absoluteFilePath()));
     }
     else {
-        // Handle the case where the file doesn't exist
         qDebug() << "File not found: " << fileInfo.path();
     }
 }
@@ -457,7 +442,6 @@ void MainWindow::on_back_right_clicked()
         ui->listView_right->setRootIndex(model->index(dir.absolutePath()));
     }
 }
-
 
 void MainWindow::on_comboBox_Rhistory_currentIndexChanged(int index)
 {
@@ -501,8 +485,6 @@ void MainWindow::on_forward_right_clicked()
     ui->right_path->setText(dir.absolutePath());
 }
 
-
-
 //Открытие папки влева через проводник
 void MainWindow::on_input_clicked()
 {
@@ -515,7 +497,6 @@ void MainWindow::on_input_clicked()
     if (!directoryPath.isEmpty()) {
         //Устанавливаем в модель нужный нам путь
         model->setRootPath(directoryPath);
-        // Set the root index to display the directory contents
         QModelIndex rootIndex = model->index(directoryPath);
         ui->listView_left->setRootIndex(rootIndex);
     }
@@ -524,16 +505,13 @@ void MainWindow::on_input_clicked()
 //Открытие папки справа через проводник
 void MainWindow::on_output_clicked()
 {
-    // Open a dialog to select a directory
     QFileDialog dialog;
     dialog.setFileMode(QFileDialog::Directory);
     QString directoryPath = dialog.getExistingDirectory();
 
-    // Check if a directory was selected
     if (!directoryPath.isEmpty()) {
         //Устанавливаем в модель нужный нам путь
         model->setRootPath(directoryPath);
-        // Set the root index to display the directory contents
         QModelIndex rootIndex = model->index(directoryPath);
         ui->listView_right->setRootIndex(rootIndex);
     }
@@ -1117,28 +1095,6 @@ void MainWindow::on_sd_actions_left_clicked()
     sd_settings.exec();
 }
 
-/*
-// Функция конвертации потока RAW в JPEG
-void convertRawToJpeg(const uchar *rawImage, int width, int height, const QString &outputFileName) {
-    // Создаем QImage из RAW данных
-    QImage tmpImage = QImage(rawImage, width, height, QImage::Format_RGB32);
-
-    // Создаем буфер для сохранения JPEG изображения
-    QByteArray jpegData;
-    QBuffer buffer(&jpegData);
-    buffer.open(QIODevice::WriteOnly);
-
-    // Сохраняем QImage в формате JPEG
-    tmpImage.save(&buffer, "JPG");
-
-    // Сохраняем JPEG данные в файл
-    QFile file(outputFileName);
-    if (file.open(QIODevice::WriteOnly)) {
-        file.write(jpegData);
-        file.close();
-    }
-}
-*/
 //Обработка действий из SD actions
 void MainWindow::receiveSDActionsData(int *settings)
 {
@@ -1152,14 +1108,12 @@ void MainWindow::receiveSDActionsData(int *settings)
         settings[5] - 0 - Photo && video || 1 - Only photo || 2 - Only video
 
     */
+
     //Обработка и фото, и видео
     if(settings[5] == 0){
         //Директории для фото и видео
         QDir sourcePhotoDir = model->filePath(ui->listView_left->rootIndex()) + "/DCIM/103MSDCF";
         QDir sourceVideoDir = model->filePath(ui->listView_left->rootIndex()) + "/PRIVATE/AVCHD/BDMV/STREAM";
-
-        //QDir destPhotoDir = model->filePath(ui->listView_right->rootIndex()) + "/Photo";
-        //QDir destVideoDir = model->filePath(ui->listView_right->rootIndex()) + "/Video";
         QDir destDir = model->filePath(ui->listView_right->rootIndex());
 
         // Получаем список файлов в исходной директории
@@ -1573,13 +1527,13 @@ void MainWindow::on_rename_enter_returnPressed()
     }
 }
 
-//Обработка фокуса - 1
+//Обработка фокуса -1
 void MainWindow::on_listView_left_clicked(const QModelIndex &index)
 {
     properFocus();
 }
 
-//Обработка фокуса - 1
+//Обработка фокуса -1
 void MainWindow::on_listView_right_clicked(const QModelIndex &index)
 {
     properFocus();
@@ -1592,7 +1546,6 @@ void MainWindow::on_list_view_left_clicked()
     ui->listView_left->setUniformItemSizes(false);
     ui->listView_left->setViewMode(QListView::ListMode);
 }
-
 
 void MainWindow::on_icon_view_left_clicked()
 {
@@ -1629,7 +1582,6 @@ void MainWindow::contextMenuEvent(QContextMenuEvent *event)
     QMenu menu(this); // Создаем объект контекстного меню
 
     QAction *open = menu.addAction("Open");
-    //QAction *open_with = menu.addAction("Open with...");
 
     //Сортировка
     menu.addSeparator();
@@ -1677,29 +1629,19 @@ void MainWindow::contextMenuEvent(QContextMenuEvent *event)
             break;
         }
     }
-    /*
-    else if(selectedAction == open_with){
-        QModelIndexList selectedIndexes = selectionModel->selectedIndexes();
-        foreach (const QModelIndex &index, selectedIndexes) {
-            QFileInfo fileInfo = model->fileInfo(index);
-            //HINSTANCE hInstance = ShellExecuteA(0, VERB_OPEN, fileInfo.absoluteFilePath().toUtf8().constData(), 0, 0, SW_SHOWDEFAULT);
-            //QDesktopServices::openUrl(QUrl::fromUserInput(fileInfo.absoluteFilePath()));
-            //QString param = "/select,\"" + QDir::toNativeSeparators(fileInfo.absoluteFilePath()) + "\"";
-            //QProcess::startDetached("explorer.exe", QStringList() << param);
-            break;
-        }
-    }
-*/
     else if(selectedAction == actionSortByName){
         //Сортировка по имени
+        //Sample text
 
     }
     else if(selectedAction == actionSortByDate){
         //Сортировка по дате
+        //Sample text
 
     }
     else if(selectedAction == actionSortBySize){
         //Сортировка по размеру
+        //Sample text
 
     }
     else if(selectedAction == listView){
@@ -1796,39 +1738,37 @@ void MainWindow::contextMenuEvent(QContextMenuEvent *event)
         on_permanent_del_clicked();
     }
     else if (selectedAction == properties) {
-        QModelIndexList selectedIndexes = selectionModel->selectedIndexes();
-        foreach (const QModelIndex &index, selectedIndexes) {
-            QFileInfo fileInfo = model->fileInfo(index);
-            if (fileInfo.isFile()) { // Проверяем, что это файл, а не папка
-                //openFileProperties(fileInfo.absoluteFilePath());
-                break;
-            }
-        }
+        //Окно свойств
+        //Sample text
     }
     else if (selectedAction == editMeta) {
         //Редактор метаданных
+        //Sample text
 
     }
 }
 
-
+//Открытие через вернее меню
 void MainWindow::on_actionSD_actions_triggered()
 {
     on_sd_actions_left_clicked();
 }
 
-bool createDir = true;
+bool createDir = true; //Переменная для понимания, что создавать
 
+//Создание новой папки
 void MainWindow::new_dir(){
     createDir = true;
     ui->new_name->show();
 }
 
+//Создание нового файла
 void MainWindow::new_file(){
     createDir = false;
     ui->new_name->show();
 }
 
+//Принудительный выход из создания нового файла
 void MainWindow::keyPressEvent(QKeyEvent *event) {
     if (event->key() == Qt::Key_Escape) {
         ui->new_name->hide();
@@ -1837,7 +1777,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
     QWidget::keyPressEvent(event);
 }
 
-
+//Введение нового имени
 void MainWindow::on_new_name_returnPressed()
 {
     QString element_name = ui->new_name->text();
@@ -1890,10 +1830,12 @@ void MainWindow::on_new_name_returnPressed()
     }
 }
 
+//Сжатие изображения для иконок
 QImage scaleImage(const QImage &originalImage, const QSize &targetSize) {
     return originalImage.scaled(targetSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 }
 
+//Функция обновления иконок
 void MainWindow::refreshIcons(){
     // Получаем модель выбора из listView'ов
     //QItemSelectionModel* selectionModel = getModelFromFocusedListView();
@@ -1923,11 +1865,6 @@ void MainWindow::refreshIcons(){
             QSize size(iconHieght, iconWidth);
             QPixmap scaledPixmap = QPixmap::fromImage(temp.scaled(size, Qt::KeepAspectRatio, Qt::SmoothTransformation));
             QIcon newIcon(scaledPixmap);
-            // Устанавливаем новую иконку для файла
-            //qDebug() << model->setData(index, newIcon, Qt::DecorationRole);
-            //model->setData(index, newIcon, Qt::DecorationRole);
-            //qDebug() << deb++;
-            //qDebug() << fileInfo.absoluteFilePath();
         }
     }
     ui->listView_left->update();

@@ -33,12 +33,13 @@ void MyQFileSystemModel::receiveToModel(int *arr){
 
 }
 
+//Поскольку я переопределил data() начал работать Drag'n'drop. Я его выключил
 QMimeData *MyQFileSystemModel::mimeData(const QModelIndexList &indexes) const
 {
-    // Disable drag-and-drop by returning an empty QMimeData object
     return new QMimeData;
 }
 
+//Переопределение даты
 QVariant MyQFileSystemModel::data(const QModelIndex &index, int role) const
 {
 

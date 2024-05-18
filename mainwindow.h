@@ -12,7 +12,6 @@
 #include <QFileSystemModel>
 #include <QMainWindow>
 #include <QKeyEvent>
-//#include "list.h"
 #include <QDir>
 #include <QModelIndex>
 
@@ -140,7 +139,6 @@ private:
     QShortcut *keyCtrl_Up;    // Ctrl + +
     QShortcut *keyCtrl_Down;  // Ctrl + -
     QShortcut *keyCtrl_Eq;    // Ctrl + =
-    QFileInfoList *aDirList;
 
     long long Lhindex = 0;
     long long Rhindex = 0;
